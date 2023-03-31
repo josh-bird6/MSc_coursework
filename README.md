@@ -1,0 +1,1 @@
+This repository contains information and scripts related to coursework I have copmleted as part of the MSc in Data Analytics
