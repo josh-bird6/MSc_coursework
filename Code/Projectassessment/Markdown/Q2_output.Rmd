@@ -1,0 +1,158 @@
+---
+title: "Q2"
+output: 
+  word_document:
+    reference_docx: output_test.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,
+                      message=F,
+                      warning=F,
+                      dpi=300)
+
+load("C:/Users/u449921/Documents/MSc work/airbnb.RData")
+
+library(tidyverse)
+library(flextable)
+```
+
+## 1: Price summary
+
+### Output 1: Summarised price statistics for Paris and Copenhagen
+```{r first}
+
+
+summary(paris$price)
+
+summary(copenhagen$price)
+
+
+```
+
+\newpage
+### Figure 1: Boxplots and histograms for price data, Paris and Copenhagen
+```{r second, fig.dim = c(8,6)}
+q2.1<- ggplot(paris, aes(x=price))+
+  geom_histogram(bins=30) +
+  labs(title = "1(a). Paris") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::dollar_format())
+
+q2.2 <- ggplot(copenhagen, aes(x=price))+
+  geom_histogram(bins=50)+
+  labs(title = "1(b). Copenhagen")+
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma)+
+  scale_x_continuous(labels = scales::dollar_format())
+
+q2.3 <- ggplot(paris, aes(x=log(price)))+
+  geom_histogram(bins=8) +
+  labs(title = "1(c). Paris (log-transformed)")+
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma)
+
+q2.4 <- ggplot(copenhagen, aes(x=log(price)))+
+  geom_histogram(bins=8) +
+  labs(title = "1(d). Copenhagen (log-transformed)")+
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma)
+
+q2.5 <- ggplot(paris, aes(x=price))+
+  geom_boxplot()+
+  labs(title = "1(e). Paris")+
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma)+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  scale_x_continuous(labels = scales::dollar_format())
+
+q2.6 <- ggplot(copenhagen, aes(x=price))+
+  geom_boxplot()+
+  labs(title = "1(f). Copenhagen")+
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma)+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  scale_x_continuous(labels = scales::dollar_format())
+
+ggpubr::ggarrange(q2.1,q2.2, q2.3,q2.4,q2.5,q2.6, ncol =2, nrow=3)
+
+```
+`
+
+### Output 2: Two-sample t-test.
+
+```{r fourth}
+
+paristtest <- paris %>% 
+  select(price) %>% 
+  mutate(city="Paris",
+         price2=log(price))
+
+copenhagentest <- copenhagen %>% 
+  select(price) %>% 
+  mutate(city="Copenhagen",
+         price2=log(price))
+
+ttest <- rbind(paristtest,copenhagentest)
+
+t.test(ttest$price~ttest$city, var.equal=T)
+t.test(ttest$price2~ttest$city, var.equal=T)
+
+wilcox.test(ttest$price~ttest$city)
+```
+\newpage
+
+### Table 1: Raw counts for private room type
+
+```{r fifth}
+# Q3copenhagen <- copenhagen %>% 
+#   mutate(private = case_when(room_type == "Private room"~"1. Yes",
+#                              T~"2. No"))
+# 
+# prop.table(table(Q3copenhagen$private))
+# 
+# ((3564/nrow(Q3copenhagen)) + 1.96*sqrt(((3564/nrow(Q3copenhagen))*(1-(3564/nrow(Q3copenhagen))))/nrow(Q3copenhagen)))*100
+# ((3564/nrow(Q3copenhagen)) - 1.96*sqrt(((3564/nrow(Q3copenhagen))*(1-(3564/nrow(Q3copenhagen))))/nrow(Q3copenhagen)))*100
+# 
+# prop.test(table(Q3copenhagen$private))
+# 
+# ##################################
+# 
+# Q3paris <- paris %>% 
+#   mutate(private = case_when(room_type == "Private room"~"1. Yes",
+#                              T~"2. No"))
+# 
+# prop.table(table(Q3paris$private))
+# 
+# ((7880/nrow(Q3paris)) + 1.96*sqrt(((7880/nrow(Q3paris))*(1-(7880/nrow(Q3paris))))/nrow(Q3paris)))*100
+# ((7880/nrow(Q3paris)) - 1.96*sqrt(((7880/nrow(Q3paris))*(1-(7880/nrow(Q3paris))))/nrow(Q3paris)))*100
+# 
+# prop.test(table(Q3paris$private))
+###################################
+
+
+
+matrix(data = c(3564,7880,17737,62278), nrow=2, ncol=2)
+
+
+
+```
+
+### Output 1: Two proportion test
+
+```{r sixth}
+Q3copenhagen <- copenhagen %>% 
+  mutate(private = case_when(room_type == "Private room"~"1. Yes",
+                             T~"2. No"))
+
+Q3paris <- paris %>% 
+  mutate(private = case_when(room_type == "Private room"~"1. Yes",
+                             T~"2. No"))
+
+prop.test(c(3564,7880),c(nrow(Q3copenhagen), nrow(Q3paris)))
+```
