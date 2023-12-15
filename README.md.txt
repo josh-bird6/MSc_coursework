@@ -1,1 +1,0 @@
-Coursework and code and associated materials concerning the CPD I've undertaken on the MSc in Data Analytics at the University of Glasgow
