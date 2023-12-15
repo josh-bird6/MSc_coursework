@@ -1,0 +1,228 @@
+---
+title: "Q1"
+output: 
+  word_document:
+    reference_docx: output_test.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,
+                      message=F,
+                      warning=F,
+                      dpi=300)
+
+load("C:/Users/u449921/Documents/MSc work/airbnb.RData")
+
+library(tidyverse)
+library(flextable)
+```
+
+## 1(a): Number of reviews each property receives in each city
+
+### Output 1: Summarised statistics for reviews, Paris and Copenhagen
+```{r first}
+
+
+summary(copenhagen$reviews)
+
+summary(paris$reviews)
+
+```
+
+### Table 1: Number of reviews per property, Paris and Copenhagen
+
+```{r second}
+copenhagen_join <- copenhagen %>% 
+  mutate(`Number of reviews per property`=case_when(reviews==0~"a. 0",
+                               reviews>0 & reviews<11~"b. 1 to 10",
+                               reviews>10 & reviews<51~"c. 11 to 50",
+                               reviews>50 & reviews<101~"d. 51 to 100",
+                               reviews>100 & reviews<201~"e. 101 to 200",
+                               reviews>200 & reviews<301~"f. 201 to 300",
+                               reviews>300 & reviews<401~"g. 301 to 400",
+                               T~"h. over 400")) %>% 
+  group_by(`Number of reviews per property`) %>% 
+  summarise(`Copenhagen total` = n()) %>% 
+  mutate(sums = sum(`Copenhagen total`),
+         `Copenhagen %` = round((`Copenhagen total`/sums)*100,1),
+         `Copenhagen %` = paste0(`Copenhagen %`, "%"),
+         `Number of reviews per property` = str_sub(`Number of reviews per property`, 4)) %>% 
+  select(-3)
+
+
+paris %>% 
+  mutate(`Number of reviews per property`=case_when(reviews==0~"a. 0",
+                               reviews>0 & reviews<11~"b. 1 to 10",
+                               reviews>10 & reviews<51~"c. 11 to 50",
+                               reviews>50 & reviews<101~"d. 51 to 100",
+                               reviews>100 & reviews<201~"e. 101 to 200",
+                               reviews>200 & reviews<301~"f. 201 to 300",
+                               reviews>300 & reviews<401~"g. 301 to 400",
+                               T~"h. over 400")) %>% 
+  group_by(`Number of reviews per property`) %>% 
+  summarise(`Paris total` = n()) %>% 
+  mutate(sums = sum(`Paris total`),
+         `Paris %` = round((`Paris total`/sums)*100,1),
+         `Paris %` = paste0(`Paris %`, "%"),
+         `Number of reviews per property` = str_sub(`Number of reviews per property`, 4)) %>% 
+  select(-3) %>% 
+  left_join(copenhagen_join) %>% 
+  mutate_all(~replace_na(.,0)) %>% 
+  add_row(`Number of reviews per property` = "TOTAL",
+          `Paris total` = 70158,
+          `Paris %` = "100%",
+          `Copenhagen total` = 21301,
+          `Copenhagen %` = "100%") %>% 
+  flextable() %>% 
+  width(j=c(1,2,4,5), 1.3) %>%
+  border_outer(border = officer::fp_border()) %>% 
+  vline(j=c(1,3), border = officer::fp_border()) %>% 
+  bold(i=9) %>% 
+  hline(i=8, border = officer::fp_border()) %>% 
+  colformat_int(big.mark=",") %>% 
+  align(j=1, align = 'left', part = 'all') 
+
+```
+
+### Figure 1: Boxplots and histograms for reviews, Paris and Copenhagen
+
+```{r third, fig.dim = c(8,6)}
+First <- copenhagen %>% 
+  mutate(logreviews = log(reviews)) %>% 
+  filter(reviews>0) %>%
+  ggplot(aes(x=logreviews))+
+  geom_histogram(bins = 13) +
+  theme_bw() +
+  labs(x= "",
+       y="Count",
+       title="Copenhagen") +
+  scale_y_continuous(labels=scales::comma)
+
+second <- copenhagen %>% 
+  mutate(logreviews = log(reviews)) %>% 
+  filter(reviews>0) %>%
+  ggplot(aes(x=logreviews))+
+  geom_boxplot()+
+  theme_bw() +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  labs(title = "Copenhagen",
+       x= "")
+
+third <- paris %>% 
+  mutate(logreviews = log(reviews)) %>% 
+  filter(reviews>0) %>%
+  ggplot(aes(x=logreviews))+
+  geom_histogram(bins = 13) +
+  theme_bw() +
+  labs(x= "Number of reviews (log-transformed)",
+       y="Count",
+       title="Paris") +
+  scale_y_continuous(labels=scales::comma) 
+
+fourth <- paris %>% 
+  mutate(logreviews = log(reviews)) %>% 
+  filter(reviews>0) %>%
+  ggplot(aes(x=logreviews))+
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  labs(title = "Paris",
+       x= "Number of reviews (log-transformed)")
+
+ggpubr::ggarrange(First,second,third,fourth, ncol=2,nrow=2) %>% 
+  ggpubr::annotate_figure(bottom = ggpubr::text_grob("Note: All properties with no reviews have been omitted", size=12))
+
+```
+
+\newpage
+
+## 1(b): Room type in each property by city
+
+### Figure 2: Roomtype by city, Paris and Copenhagen
+
+```{r fourth, fig.dim = c(8,4)}
+
+fig2_paris <- paris %>% 
+  group_by(room_type) %>% 
+  summarise(total = n()) %>% 
+  mutate(tottt = sum(total),
+         prop = round((total/tottt)*100,1),
+         city = "Paris \n(n=70,158)")
+
+fig2_copenhagen <- copenhagen %>% 
+  group_by(room_type) %>% 
+  summarise(total = n()) %>% 
+  mutate(tottt = sum(total),
+         prop = round((total/tottt)*100,1),
+         city = "Copenhagen \n(n=21,301)")
+
+rbind(fig2_paris,fig2_copenhagen) %>% 
+  ggplot(aes(x=city, y=prop, fill=room_type))+
+  geom_col() +
+  theme_bw()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank())+
+  geom_text(aes(label = paste0(prop, "%")), position = position_stack(.5))+
+  coord_flip() +
+  labs(y="%",
+       x="")
+  
+
+```
+
+\newpage
+
+## 1(c): Satisfaction by property
+
+### Figure 3: Satisfaction by city, Paris and Copenhagen
+
+```{r fifth, fig.dim = c(4,8)}
+fig3_paris <- paris %>% 
+  mutate(`Overall Satisfaction` = overall_satisfaction) %>% 
+  ggplot(aes(x=`Overall Satisfaction`))+
+  geom_histogram(bins=10) +
+  geom_vline(xintercept = mean(paris$overall_satisfaction)) +
+  geom_vline(xintercept = median(paris$overall_satisfaction), linetype = "dashed") +
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(breaks = seq(0,10, by=1))+
+  labs(title = "Paris")
+
+fig3_copenhagen <- copenhagen %>% 
+  mutate(`Overall Satisfaction` = overall_satisfaction) %>% 
+  ggplot(aes(x=`Overall Satisfaction`))+
+  geom_histogram(bins=10) +
+  geom_vline(xintercept = mean(copenhagen$overall_satisfaction)) +
+  geom_vline(xintercept = median(copenhagen$overall_satisfaction), linetype = "dashed") +
+  theme_bw()+
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(breaks = seq(0,10, by=1))+
+  labs(title = "Copenhagen")
+
+ggpubr::ggarrange(fig3_paris, fig3_copenhagen, nrow=2) %>% 
+  ggpubr::annotate_figure(bottom = ggpubr::text_grob("Note: Solid line is mean and dashed line is median", size=12))
+###################################
+
+```
+
+## Output 1a: Satisfaction rating by number of reviews
+```{r output}
+paris %>% 
+  group_by(reviews, overall_satisfaction) %>% 
+  summarise(total = n()) %>% 
+  mutate(totals = 70158,
+         prop = (total/totals)*100) %>% 
+  arrange(overall_satisfaction)
+
+copenhagen %>% 
+  group_by(reviews, overall_satisfaction) %>% 
+  summarise(total = n()) %>% 
+  mutate(totals = 21301,
+         prop = (total/totals)*100) %>% 
+  arrange(overall_satisfaction)
+
+```
