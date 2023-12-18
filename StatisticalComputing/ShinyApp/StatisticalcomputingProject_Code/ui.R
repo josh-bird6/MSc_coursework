@@ -1,33 +1,51 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
-library(shiny)
+#Load source file
+source('StatisticalcomputingProject_Code/Setupscript.R')
 
-# Define UI for application that draws a histogram
-shinyUI(fluidPage(
+##########################################################################
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins
+fluidPage(
+    titlePanel("Subsetting the motorcycle data"),
     sidebarLayout(
         sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:", 
-                        min = 1,
-                        max = 50,
-                        value = 30)
+            selectizeInput("selectize1", "Station", 
+                           selected = NULL,
+                           choices = NULL,
+                           multiple = F,
+                           options = list(maxItems=3,
+                                          placeholder = "Select a station (up to three max)")),
+            sliderInput("range", "Subset range", min=0, max=60, value=c(0,60)),
+            # ˆˆˆˆˆ Label used in server.R when querying slider
+            downloadButton("download1", "Download subset", shiny::icon("download"))
+            # ˆˆˆˆˆˆˆˆˆˆˆ Label used in server.R for download
         ),
-
-        # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("distPlot")
+            tabsetPanel(
+                tabPanel("Introduction",
+                         p("here is where the introduction text of the APP will go - description, methods, data sources and so on"),
+                ),
+                tabPanel("Plot",
+                         plotOutput("plot1")
+                         ),
+                tabPanel("Text",
+                         verbatimTextOutput("text1")
+                ),
+                tabPanel("Table",
+                         dataTableOutput("table1")
+                         )
+                         
+            )
         )
     )
-))
+)
+        # mainPanel(
+        #     tabsetPanel(
+        #         tabPanel("Introduction",
+        #                  p("Here is where the text for the introduction of the APP is going to go - description, methods, data sources and so on")
+        #                  ),
+        #         tabPanel("Output",
+        #                  uiOutput("ui") # Put adaptive UI component here
+        #                  ),
+        #         tabPanel("Other output",
+        #                  p("Another plot or some output...")
+
