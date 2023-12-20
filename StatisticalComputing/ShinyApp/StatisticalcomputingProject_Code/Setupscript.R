@@ -6,15 +6,21 @@
 ###################
 ###################
 
+#####################
+##Reading in datasets
+#####################
 
-##First, reading in datasets
 library(tidyverse)
+library(DT)
 library(shiny)
+library(shinyWidgets)
+library(shinymanager)
+library(shinyBS)
+library(bsplus)
 
-
-
-
-##Next, importing data
+################
+##Importing data
+################
 
 #first creating single data frame with filepaths for all the datasets to import
 datasets <- list.files('Data') %>% 
@@ -36,3 +42,13 @@ locations <- read_csv(file = "Data/__Stations.csv") %>%
 basedata_final <- 
   basedata %>% 
   left_join(locations, by="AirQualityStationEoICode")
+
+
+
+#################################
+##creating drop down menu options
+#################################
+
+station_name <- unique(basedata_final$StationName)
+station_code <- unique(basedata_final$AirQualityStationEoICode)
+pollutant_name <- unique(basedata_final$AirPollutant)
