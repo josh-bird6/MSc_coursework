@@ -16,10 +16,38 @@ shinyServer(function(input, output, session)
                               selected = "Introduction")
         })
     
+    ###############
+    ##Geography tab
+    ###############
+
+    #we can then plot the graph based on the user input.
+    #First we create a subset based on user input
     
+    geography_new <- reactive({
+        dailyaverage %>%
+            filter(StationName %in% input$Station_Name 
+                   & AirPollutant %in% input$Pollutant 
+                   & categories %in% input$Category
+            )
+        })
     
+    output$geography_plot <- renderPlot({
+        
+        ggplot(geography_new(), aes(x=yearmon, y = total, group = StationName, color = StationName))+
+            geom_line(aes(group = StationName, color = StationName))+
+            theme_bw() +
+            labs(title = paste0(input$Pollutant, " ",input$Category),
+                 y= paste0(input$Category, input$Pollutant, " concentration (µg/m3)"),
+                 x="Date") +
+            plottheme +
+            scale_y_continuous(limits = c(0,100)) 
     
+    })
     
+    output$geography_table <- renderDataTable({
+        geography_new()
+    
+    })
     
     
 })

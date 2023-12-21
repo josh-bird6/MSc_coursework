@@ -65,49 +65,79 @@ tabsetPanel(
         background-color: #FFFFFF; border: 0px solid #FFFFFF;",
         
         column(2),
-        column(
-            8,
-            p(
-                br(),
-                "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 2013 and 2019. You can visualise these data using the following pages:"
-            ),
-            tags$ul(tags$li(
-                tags$b(actionLink(
-                    "link_to_geography", "Location comparison"
-                )),
-                icon("line-chart"),
-                " - compare data by location, over time."
-                )
-                ),
-            bs_accordion(id = "drhs_introduction_text") %>%
-                bs_set_opts(panel_type = "primary") %>%
-                bs_append(
-                    title = tags$u("Technical information"),
-                    content =
-                        p("This dashboard provides information on air pollution recorded in Air Quality Stations across Czechia between 2013 and 2019.",
-                          br(),br(),
-                          "Data is sourced from the", tags$a(href = "https://www.eea.europa.eu/en/topics/in-depth/air-pollution", "European Environmental Agency,")," and information on individual pollutants, as well as the legal limits under EU law, can be found below:",
-                          tags$ul(
-                              tags$li(HTML(paste0("<b>Fine particulates (PM2.5)</b>")), "Yearly average of at most 20", HTML(paste0("<em>µg/m", tags$sup("3"),".</em>"))
-                                      ),
-                              tags$li(HTML(paste0("<b>Particulates (PM10)</b>")), "Daily average exceeding 50", HTML(paste0("<em>µg/m", tags$sup("3"),"</em>")), "observed on at most 35 days a year, and yearly average of at most 40", HTML(paste0("<em>µg/m", tags$sup("3"),".</em>"))
-                                      ),
-                              tags$li(HTML(paste0("<b>Sulphur dioxide (SO", tags$sub("2"),")</b>")), "Hourly concentration exceeding 350", HTML(paste0("<em>µg/m", tags$sup("3"),"</em>")), "for at most 24 hours per year, and average daily concentration exceeding 125", HTML(paste0("<em>µg/m", tags$sup("3"),"</em>")), "on at most 3 days per year."
-                                      ),
-                              tags$li(HTML(paste0("<b>Nitrogen dioxide (NO", tags$sub("2"),")</b>")), "Hourly concentration exceeding 200", HTML(paste0("<em>µg/m", tags$sup("3"),"</em>")), "for at most 18 hours per year, and average yearly concentration of at most 40", HTML(paste0("<em>µg/m", tags$sup("3"),".</em>"))
-                                      )
-                          ),
-                          br(),
-                          "For more information on EU air quality standards, plesae visit the relevant ", tags$a(href = "https://environment.ec.europa.eu/topics/air/air-quality_en", "European Commission "),"webpage"
-                          )
-                    ),
-            p("If you experience any problems using this dashboard or have further questions relating to the data, please contact me at:",
-                HTML(paste0('<b> <a href="mailto:Joshua.Bird@gov.scot">Joshua.Bird@gov.scot</a></b>.'
-                            )
-                     )
-             )
-           )
-        ),
+        column(8,
+               p(
+                   br(),
+                   "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 2013 and 2019. You can visualise these data using the following pages:"
+                   ),
+               tags$ul(tags$li(
+                   tags$b(actionLink(
+                       "link_to_geography", "Location comparison"
+                   )),
+                   icon("line-chart"),
+                   " - compare data by location, over time."
+               )), 
+               bs_accordion(id = "drhs_introduction_text") %>%
+                   bs_set_opts(panel_type = "primary") %>%
+                   bs_append(
+                       title = tags$u("Technical information"),
+                       content =
+                           p(
+                               "This dashboard provides information on air pollution recorded in Air Quality Stations across Czechia between 2013 and 2019.",
+                               br(),
+                               br(),
+                               "Data is sourced from the",
+                               tags$a(href = "https://www.eea.europa.eu/en/topics/in-depth/air-pollution", "European Environmental Agency,"),
+                               " and information on individual pollutants, as well as the legal limits under EU law, can be found below:",
+                               tags$ul(
+                                   tags$li(HTML(
+                                       paste0("<b>Fine particulates (PM2.5)</b>")
+                                   ), "Yearly average of at most 20", HTML(paste0(
+                                       "<em>µg/m", tags$sup("3"), ".</em>"
+                                   ))),
+                                   tags$li(
+                                       HTML(paste0("<b>Particulates (PM10)</b>")),
+                                       "Daily average exceeding 50",
+                                       HTML(paste0("<em>µg/m", tags$sup("3"), "</em>")),
+                                       "observed on at most 35 days a year, and yearly average of at most 40",
+                                       HTML(paste0("<em>µg/m", tags$sup("3"), ".</em>"))
+                                   ),
+                                   tags$li(
+                                       HTML(paste0(
+                                           "<b>Sulphur dioxide (SO", tags$sub("2"), ")</b>"
+                                       )),
+                                       "Hourly concentration exceeding 350",
+                                       HTML(paste0("<em>µg/m", tags$sup("3"), "</em>")),
+                                       "for at most 24 hours per year, and average daily concentration exceeding 125",
+                                       HTML(paste0("<em>µg/m", tags$sup("3"), "</em>")),
+                                       "on at most 3 days per year."
+                                   ),
+                                   tags$li(
+                                       HTML(paste0(
+                                           "<b>Nitrogen dioxide (NO", tags$sub("2"), ")</b>"
+                                       )),
+                                       "Hourly concentration exceeding 200",
+                                       HTML(paste0("<em>µg/m", tags$sup("3"), "</em>")),
+                                       "for at most 18 hours per year, and average yearly concentration of at most 40",
+                                       HTML(paste0("<em>µg/m", tags$sup("3"), ".</em>"))
+                                   )
+                               ),
+                               br(),
+                               "For more information on EU air quality standards, plesae visit the relevant ",
+                               tags$a(href = "https://environment.ec.europa.eu/topics/air/air-quality_en", "European Commission "),
+                               "webpage"
+                           )
+                   ),
+               p(
+                   "If you experience any problems using this dashboard, please contact me at:",
+                   HTML(
+                       paste0(
+                           '<b> <a href="mailto:Joshua.Bird@gov.scot">Joshua.Bird@gov.scot</a></b>.'
+                       )
+                   )
+               )
+        )
+    ), 
     
     ###############
     ##Geography tab
@@ -190,65 +220,58 @@ tabsetPanel(
         
         p(""),
         
-        # wellPanel(
-        #     tags$style(
-        #         ".well { background-color: #FFFFFF;
-        # border: 0px solid #336699; }"
-        #     ),
-        #     
-        #     #Insert the reactive filters.
-        #     #We have SIX filters at this point 
-        #     # 1 - Hospital type
-        #     # 2 - Diagnosis Type
-        #     # 3 - Actvity Type
-        #     # 4 - Geography (Multiple)
-        #     # 5 - Substance
-        #     # 6 - Measure
-        #     
-        #     column(
-        #         4,
-        #         shinyWidgets::pickerInput(
-        #             inputId = "Hospital_Type",
-        #             label = "Hospital type",
-        #             choices = hospital_types
-        #         ), 
-        #         shinyWidgets::pickerInput(
-        #             inputId = "Location",
-        #             label = "Location (multiple selection)",
-        #             choices = geography_list,
-        #             multiple = TRUE,
-        #             selected = "Scotland",
-        #             options = list(size=10, 
-        #                            `live-search`=TRUE, 
-        #                            `selected-text-format` = "count > 1", 
-        #                            `count-selected-text` = "{0} locations chosen (8 Max)",
-        #                            "max-options" = 8,
-        #                            "max-options-text" = "Only 8 options can be chosen")
-        #         )
-        #     ),
-        #     
-        #     column(
-        #         4,
-        #         uiOutput("time_trend_diagnosis_type"), 
-        #         uiOutput("time_trend_substance1")
-        #     ),
-        #     
-        #     column(
-        #         4,
-        #         shinyWidgets::pickerInput(
-        #             inputId = "Activity_Type",
-        #             label = "Activity type",
-        #             choices = activity_type
-        #         ),
-        #         shinyWidgets::pickerInput(
-        #             inputId = "Measure",
-        #             label = "Measure",
-        #             choices = measures,
-        #             selected = "Rate"
-        #         )
-        #     )
-        #     
-        # ),
+        wellPanel(
+            tags$style(
+                ".well { background-color: #FFFFFF;
+        border: 0px solid #336699; }"
+            ),
+
+            #Insert the reactive filters.
+            #We have SIX filters at this point
+            # 1 - Hospital type
+            # 2 - Diagnosis Type
+            # 3 - Actvity Type
+            # 4 - Geography (Multiple)
+            # 5 - Substance
+            # 6 - Measure
+
+            column(
+                4,
+                shinyWidgets::pickerInput(
+                    inputId = "Station_Name",
+                    label = "Station Name (select up to 3)",
+                    choices = station_name,
+                    multiple = TRUE,
+                    selected = NULL,
+                    options = list(size=10,
+                                   `live-search` = TRUE,
+                                   `selected-text-format` = "count > 1",
+                                   `count-selected-text` = "{0} locations chosen (3 Max)",
+                                   "max-options" = 3,
+                                   "max-options-text" = "Only 3 options can be chosen")
+                ),
+                shinyWidgets::pickerInput(
+                    inputId = "Pollutant",
+                    label = "Pollutant",
+                    choices = pollutant_name,
+                    multiple = TRUE,
+                    selected = NULL,
+                    options = list("max-options" = 1)
+                )
+            ),
+            
+            column(
+                4,
+                shinyWidgets::pickerInput(
+                    inputId = "Category",
+                    label = "Metric",
+                    choices = categories
+                )
+            )
+
+
+        ),
+        
         
         downloadButton(outputId = "download_geography", 
                        label = "Download data", 
@@ -262,27 +285,28 @@ tabsetPanel(
         
         #In the main panel of the tab, insert the geography plot
         
-        # mainPanel(
-        #     width = 12,
-        #     plotlyOutput("geography_plot",
-        #                  width = "1090px",
-        #                  height = "500px"),
-        #     br(),
-        #     HTML("<button data-toggle = 'collapse' href = '#geography'
-        #            class = 'btn btn-primary' id = 'geography_link'> 
-        #                   <strong> Show/hide table </strong></button>"),
-        #     HTML("<div id = 'geography' class = 'collapse'>"),
-        #     br(),
-        #     dataTableOutput("geography_table"),
-        #     HTML("</div>"),
-        #     br(),
-        #     br()
-        # )
+        mainPanel(
+            width = 12,
+            plotOutput("geography_plot",
+                         width = "1090px",
+                         height = "500px"),
+            br(),
+            HTML("<button data-toggle = 'collapse' href = '#substances'
+                   class = 'btn btn-primary' id = 'substances_link'> 
+                   <strong> Show/hide table </strong></button>"),
+            HTML("<div id = 'substances' class = 'collapse'>"),
+            br(),
+            dataTableOutput("geography_table"),
+            HTML("</div>"),
+            br(),
+            br()
+        )
         
         #End of tab panel
         )
+        )
 )
-)
+
 
 
 
