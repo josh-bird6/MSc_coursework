@@ -20,6 +20,7 @@ shinyServer(function(input, output, session)
     ##Geography tab
     ###############
 
+    
     #we can then plot the graph based on the user input.
     #First we create a subset based on user input
     
@@ -31,23 +32,73 @@ shinyServer(function(input, output, session)
             )
         })
     
+    #############
+    #Plot output#
+    #############
+    
     output$geography_plot <- renderPlot({
         
-        ggplot(geography_new(), aes(x=yearmon, y = total, group = StationName, color = StationName))+
+        ## Default output is message in a blank ggplot objecttelling users to make proper selections
+        
+        if (is.null(input$Station_Name) |
+             is.null(input$Pollutant)
+        )
+            
+        { 
+            set.seed(20)
+            x <- rnorm(10)
+            y <- rnorm(10,1,.5)
+            
+            data.frame(x,y) %>% 
+                ggplot(aes(x,y))+
+                labs(x="",
+                       y="")+
+                theme(panel.grid = element_blank(),
+                      axis.text.x=element_blank(),
+                      axis.ticks.x=element_blank(),
+                      axis.text.y=element_blank(),
+                      axis.ticks.y=element_blank())+
+                annotate("text", x=5,5, label = "Please select a station and a pollutant from the drop down menus above", size=11)
+           }
+        
+        # If conditions are met, chart is plotted
+        
+        else {
+
+            ggplot(geography_new(), aes(x=yearmon, y = total, group = StationName, color = StationName))+
             geom_line(aes(group = StationName, color = StationName))+
-            theme_bw() +
             labs(title = paste0(input$Pollutant, " ",input$Category),
-                 y= paste0(input$Category, input$Pollutant, " concentration (µg/m3)"),
-                 x="Date") +
+                 y= paste0(input$Category, " ", input$Pollutant, " concentration (µg/m3)"),
+                 x="Date",
+                 caption = "Source: European Environmental Agency",
+                 color = "Station Name") +
             plottheme +
-            scale_y_continuous(limits = c(0,100)) 
+            scale_y_continuous(limits = c(0,max(geography_new()$total)))
     
+        }
+            
     })
+    
+    ##############
+    #Table output#
+    ##############
     
     output$geography_table <- renderDataTable({
         geography_new()
-    
+        
     })
+    
+    #################
+    #Download button#
+    #################
+    
+    output$download_timetrend <- downloadHandler(
+                filename = "pollutant-subset.csv",
+                content = function(file) {
+                    write.csv(geography_new(), file, row.names=FALSE)
+                    
+                }
+            )
     
     
 })

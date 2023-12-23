@@ -7,10 +7,17 @@
 ####################
 
 
-#####################
-##Loading source file
-#####################
-#source('Setupscript.R')
+######################
+##Loading source files
+######################
+
+##First the data import file
+#NOTE: THIS TAKES A WHILE TO IMPORT EVERYTHING SO JUST RUN FOR THE ONE TIME
+#source(here::here('StatisticalcomputingProject_Code/Setupscript.R'))
+
+##An extra file for some wrangling for each of the tabs
+
+
 
 #################
 ##Beginning of UI
@@ -44,7 +51,6 @@ fluidPage(
     
     #Adding title panel title
     titlePanel(title=div(h1("Air pollution in Czechia"),
-                         h4("pollutants"),
                          style = "height:96px;"),
                windowTitle="Air pollution in Czechia"),
     
@@ -70,12 +76,9 @@ tabsetPanel(
                    br(),
                    "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 2013 and 2019. You can visualise these data using the following pages:"
                    ),
-               tags$ul(tags$li(
-                   tags$b(actionLink(
-                       "link_to_geography", "Location comparison"
-                   )),
+               tags$ul(tags$li("Time series data",
                    icon("line-chart"),
-                   " - compare data by location, over time."
+                   " - compare data by location and pollutant over time."
                )), 
                bs_accordion(id = "drhs_introduction_text") %>%
                    bs_set_opts(panel_type = "primary") %>%
@@ -123,6 +126,10 @@ tabsetPanel(
                                    )
                                ),
                                br(),
+                               
+                               HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date.")),
+                               br(),
+                               br(),
                                "For more information on EU air quality standards, plesae visit the relevant ",
                                tags$a(href = "https://environment.ec.europa.eu/topics/air/air-quality_en", "European Commission "),
                                "webpage"
@@ -144,16 +151,15 @@ tabsetPanel(
     ###############
     
         tabPanel(
-        "Location comparison",
+        "Time series data",
         icon = icon("line-chart"),
         style = "height: 95%; width: 95%; background-color: #FFFFFF;
         border: 0px solid #FFFFFF;",
         
-        h3("Location comparison"),
+        h3("Time series data"),
         
         p(
-            h4("Visualise drug-related hospital activity over time and make
-        comparisons between locations. ")
+            h4("Visualise air pollution data over time and make comparisons between stations. ")
                 
             ),
         bs_accordion(id = "drhs_location_comparison_text") %>% 
@@ -162,18 +168,9 @@ tabsetPanel(
                       content = p(
                           "The chart can be modified using the drop down boxes:", 
                           tags$ul(
-                              tags$li("Hospital type: general acute or psychiatric 
-                            hospital data (or any hospital type);"),
-                              tags$li("Diagnosis grouping: mental & behavioural stays, 
-                            accidental poisoning/overdose stays (or any diagnosis);"),
-                              tags$li("Activity type: stays, patients or new patients;"),
-                              tags$li("Location: data from Scotland, specific NHS
-                            Boards or Alcohol and Drug Partnerships 
-                            (choose up to 8 locations);"),
-                              tags$li("Drug type: the type of drug associated with the 
-                            stay (opioid sub categories are available if overdoses
-                            are selected as diagnosis grouping); and,"),
-                              tags$li("Measure: numbers, rates or percentages.")
+                              tags$li("Station name: the name of the station recording data (3 selections max)"),
+                              tags$li(HTML(paste0("Pollutant: Fine particulates (PM2.5); Particulates (PM10); Sulphur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")"))),
+                              tags$li(HTML(paste0("Metric: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "."))),
                           ), 
                           "To download your data selection as a CSV file, use the
                   'Download data' button under the drop down boxes.", 
@@ -183,20 +180,10 @@ tabsetPanel(
                               "link_to_home", "introduction"
                           ), " page."
                       ))%>%
-            bs_append(title = tags$u("Chart functions"), 
-                      content = p("At the top-right corner of the chart, you will see a ",
-                                  icon("camera"), "icon: use this to save an image of the chart ",
-                                  HTML(paste0("(",tags$b("not"))), 
-                                  tags$b("available in Internet "),
-                                  HTML(paste0(tags$b("Explorer"),").")),
-                                  br(),br(),
-                                  "Categories can be shown/hidden by clicking on labels in the
-                            legend to the right of the chart.")
-            )%>%
             bs_append(title = tags$u("Table functions"), 
                       content = p(HTML("To view 
-        your data selection in a table, use the <a href = '#geography_link'> 
-                            'Show/hide table' </a>  button at the
+        your data selection in a table, use the
+                            'Show/hide table'  button at the
                             bottom of the page."),
                                   tags$ul(
                                       tags$li(tags$b("Show entries"), " - change the number of rows shown
@@ -210,14 +197,6 @@ tabsetPanel(
                             within the table.")
                                   )
                       )),
-        p(
-            tags$b(
-                "Note: Statistical disclosure control has been applied to protect
-        patient confidentiality. Therefore, the figures presented here
-        may not be additive and may differ from previous publications."
-            )
-        ),
-        
         p(""),
         
         wellPanel(
@@ -227,13 +206,10 @@ tabsetPanel(
             ),
 
             #Insert the reactive filters.
-            #We have SIX filters at this point
-            # 1 - Hospital type
-            # 2 - Diagnosis Type
-            # 3 - Actvity Type
-            # 4 - Geography (Multiple)
-            # 5 - Substance
-            # 6 - Measure
+            #We have three filters at this point
+            # 1 - Station name
+            # 2 - Pollutant
+            # 3 - Metric (daily avg or daily max)
 
             column(
                 4,
@@ -243,23 +219,29 @@ tabsetPanel(
                     choices = station_name,
                     multiple = TRUE,
                     selected = NULL,
-                    options = list(size=10,
-                                   `live-search` = TRUE,
-                                   `selected-text-format` = "count > 1",
-                                   `count-selected-text` = "{0} locations chosen (3 Max)",
-                                   "max-options" = 3,
-                                   "max-options-text" = "Only 3 options can be chosen")
-                ),
+                    options = list(
+                        size = 10,
+                        `live-search` = TRUE,
+                        `selected-text-format` = "count > 1",
+                        `count-selected-text` = "{0} locations chosen",
+                        "max-options" = 3,
+                        "max-options-text" = "Only 3 options can be chosen"
+                    )
+                )
+            ),
+            
+            column(
+                4,
                 shinyWidgets::pickerInput(
                     inputId = "Pollutant",
                     label = "Pollutant",
                     choices = pollutant_name,
-                    multiple = TRUE,
                     selected = NULL,
                     options = list("max-options" = 1)
                 )
             ),
-            
+
+         
             column(
                 4,
                 shinyWidgets::pickerInput(
@@ -268,12 +250,12 @@ tabsetPanel(
                     choices = categories
                 )
             )
-
-
-        ),
+            
+            
+        ), 
         
         
-        downloadButton(outputId = "download_geography", 
+        downloadButton(outputId = "download_timetrend", 
                        label = "Download data", 
                        class = "geographybutton"),
         
@@ -289,7 +271,8 @@ tabsetPanel(
             width = 12,
             plotOutput("geography_plot",
                          width = "1090px",
-                         height = "500px"),
+                         height = "500px") %>% 
+                shinycssloaders::withSpinner(),
             br(),
             HTML("<button data-toggle = 'collapse' href = '#substances'
                    class = 'btn btn-primary' id = 'substances_link'> 
@@ -302,7 +285,7 @@ tabsetPanel(
             br()
         )
         
-        #End of tab panel
+        #End of first tab panel
         )
         )
 )

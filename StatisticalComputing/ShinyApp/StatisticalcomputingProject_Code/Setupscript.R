@@ -6,9 +6,9 @@
 ###################
 ###################
 
-#####################
-##Reading in datasets
-#####################
+######################
+##Reading in libraries
+######################
 
 library(tidyverse)
 library(DT)
@@ -64,7 +64,8 @@ dailyaverage <- basedata_final %>%
   group_by(yearmon, StationName, AirPollutant) %>% 
   summarise(`Daily average` = mean(Concentration),
             `Daily max` = max(Concentration)) %>% 
-  pivot_longer(4:5, names_to = "category", values_to="total")
+  pivot_longer(4:5, names_to = "category", values_to="total") %>% 
+  mutate(total = round(total, 1))
 
 
 dailyaverage %>% 
@@ -85,4 +86,5 @@ plottheme <-
         axis.title = element_text(size=20),
         legend.text = element_text(size=15),
         legend.title = element_text(size=20),
-        legend.position = "bottom") 
+        legend.position = "bottom",
+        plot.caption = element_text(size=15)) 
