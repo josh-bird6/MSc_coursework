@@ -77,12 +77,12 @@ tabsetPanel(
         column(8,
                p(
                    br(),
-                   "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 2013 and 2019. You can visualise these data using the following pages:"
+                   "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 1 January 2013 and 31 December 2018. You can visualise these data using the following pages:"
                    ),
-               tags$ul(tags$li("Raw data",
-                               " - visualise raw data collected multiple times per day by pollutant and station")),
                tags$ul(tags$li("Aggregated time series data",
-                               " - compare daily average and daily maximum air pollution data over time and between stations.")), 
+                               " - compare daily average and daily maximum air pollution data over the entire time series and between stations.")),
+               tags$ul(tags$li("Daily data",
+                               " - compare average and maximum air pollution data by day of the year, and between stations.")),
                bs_accordion(id = "dashboard_introductory_text") %>%
                    bs_set_opts(panel_type = "primary") %>%
                    bs_append(
@@ -135,7 +135,7 @@ tabsetPanel(
                                br(),
                                "For more information on EU air quality standards, plesae visit the relevant ",
                                tags$a(href = "https://environment.ec.europa.eu/topics/air/air-quality_en", "European Commission "),
-                               "webpage"
+                               "webpage."
                            )
                    ),
                p(
@@ -149,147 +149,6 @@ tabsetPanel(
         )
     ), 
     
-    #######################
-    ##TAB 1: Raw data tab##
-    #######################
-    
-    tabPanel(
-        "Raw data",
-        icon = icon("line-chart"),
-        style = "height: 95%; width: 95%; background-color: #FFFFFF;
-        border: 0px solid #FFFFFF;",
-
-        h3("Raw data"),
-
-        p(
-            h4("Visualise raw air pollution data collected multiple times a day over time. ")
-
-        ),
-        bs_accordion(id = "raw_data_text") %>%
-            bs_set_opts(panel_type = "primary") %>%
-            bs_append(title = tags$u("Data selection"),
-                      content = p(
-                          "The chart can be modified using the drop down boxes in the following order:",
-                          tags$ul(
-                              tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
-                              tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max).")
-                          ),
-                          HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
-                          br(), br(),
-                          "To download your data selection as a CSV file, use the
-                  'Download data' button under the drop down boxes.",
-                          br(),br(),
-                          "For technical information, please see the",
-                          actionLink(
-                              "link_to_home", "introduction"
-                          ), " page."
-                      ))%>%
-            bs_append(title = tags$u("Table functions"),
-                      content = p(HTML("To view
-        your data selection in a table, use the
-                            'Show/hide table'  button at the
-                            bottom of the page."),
-                                  tags$ul(
-                                      tags$li(tags$b("Show entries"), " - change the number of rows shown
-                            in the table using the drop-down box."),
-                                      tags$li(tags$b("Search"), " - enter text to search data for a specific word or
-                            numerical value."),
-                                      tags$li(icon("sort", lib = "glyphicon"),
-                                              tags$b("Sort"), " - click to sort the table in ascending or
-                            descending order based on the values in a column."),
-                                      tags$li(tags$b("Page controls"), " - switch to specific page of data
-                            within the table.")
-                                  )
-                      )),
-        p(""),
-
-        wellPanel(
-            tags$style(
-                ".well { background-color: #FFFFFF;
-        border: 0px solid #336699; }"
-            ),
-
-            #Insert the reactive filters.
-            #We have two filters in this tab
-            # 1 - Pollutant
-            # 2 - Station name
-
-            #The station names are dependent on the pollutant input (see server tab)
-
-            column(
-                4,
-                pickerInput(
-                    inputId = "Year",
-                    label = "Year",
-                    choices = yearselect,
-                    multiple = TRUE,
-                    selected = NULL,
-                    options = list(
-                        size = 10,
-                        "max-options" = 1
-                    )
-                )
-            ),
-            
-            column(
-                4,
-                uiOutput("Pollutant_rawdata")
-            ),
-
-            column(
-                4,
-                uiOutput("Station_Name_rawdata")
-            ),
-
-
-        ),
-
-
-        downloadButton(outputId = "download_rawdata",
-                       label = "Download data",
-                       class = "rawdatabutton"),
-
-        tags$head(
-            tags$style(".rawdatabutton { background-color:
-                   #0072B2; }
-                   .rawdatabutton { color: #FFFFFF; }")
-        ),
-
-        #In the main panel of the tab, insert the geography plot
-
-        mainPanel(
-            width = 12,
-            plotOutput("rawdata_plot",
-                       width = "1090px",
-                       height = "500px") %>%
-
-                #Adding a loading spinner to let a user know that computations are taking place
-
-                shinycssloaders::withSpinner(),
-            br(),
-
-            #Inserting table, with option to collapse
-
-            HTML(
-                "<button data-toggle = 'collapse' href = '#rawdata'
-                   class = 'btn btn-primary' id = 'rawdata_link'>
-                   <strong> Show/hide table </strong></button>"
-            ),
-            HTML("<div id = 'rawdata' class = 'collapse'>"),
-            br(),
-            dataTableOutput("rawdata_table"),
-            HTML("</div>"),
-            br(),
-            br()
-        )
-    ),
-
-    ########################
-    ########################
-    #End of first data tab #
-    ########################
-    ########################
-    
     ##########################
     ##TAB 2: Time series tab##
     ##########################
@@ -300,10 +159,10 @@ tabsetPanel(
         style = "height: 95%; width: 95%; background-color: #FFFFFF;
         border: 0px solid #FFFFFF;",
         
-        h3("Time series data"),
+        h3("Aggregated series data"),
         
         p(
-            h4("Visualise daily average and daily maximum air pollution data over time, and make comparisons between stations. ")
+            h4("Visualise daily average and daily maximum air pollution data over the entire time series, and make comparisons between stations. ")
                 
             ),
         bs_accordion(id = "timeseries_data_text") %>% 
@@ -425,18 +284,513 @@ tabsetPanel(
             br(),
             br()
         )
-        )
+        ),
     
-    #########################
-    #########################
-    #End of second data tab##
-    #########################
-    #########################
+    ############################################
+    ############################################
+    #End of first data tab (second tab overall##
+    ############################################
+    ############################################
     
+    ###########################
+    ##TAB 3: Daily totals tab##
+    ###########################
 
+    tabPanel(
+        "Daily totals",
+        icon = icon("calendar"),
+        style = "height: 95%; width: 95%; background-color: #FFFFFF;
+        border: 0px solid #FFFFFF;",
+
+        h3("Average and maximum daily totals"),
+
+        p(
+            h4("Visualise average and maximum air pollution data by day, and make comparisons between stations. ")
+
+        ),
+        bs_accordion(id = "yearly_data_text") %>%
+            bs_set_opts(panel_type = "primary") %>%
+            bs_append(title = tags$u("Data selection"),
+                      content = p(
+                          "The chart can be modified using the drop down boxes in the following order:",
+                          tags$ul(
+                              tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
+                              tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
+                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "). This will produce a dotplot visualising the options selected."))),
+                          ),
+                          HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
+                          br(), br(),
+                          "To download your data selection as a CSV file, use the
+                  'Download data' button under the drop down boxes.",
+                          br(),br(),
+                          "For technical information, please see the",
+                          actionLink(
+                              "link_to_home", "introduction"
+                          ), " page."
+                      ))%>%
+            bs_append(title = tags$u("Table functions"),
+                      content = p(HTML("To view
+        your data selection in a table, use the
+                            'Show/hide table'  button at the
+                            bottom of the page."),
+                                  tags$ul(
+                                      tags$li(tags$b("Show entries"), " - change the number of rows shown
+                            in the table using the drop-down box."),
+                                      tags$li(tags$b("Search"), " - enter text to search data for a specific word or
+                            numerical value."),
+                                      tags$li(icon("sort", lib = "glyphicon"),
+                                              tags$b("Sort"), " - click to sort the table in ascending or
+                            descending order based on the values in a column."),
+                                      tags$li(tags$b("Page controls"), " - switch to specific page of data
+                            within the table.")
+                                  )
+                      )),
+        p(""),
+
+        wellPanel(
+            tags$style(
+                ".well { background-color: #FFFFFF;
+        border: 0px solid #336699; }"
+            ),
+
+            #Insert the reactive filters.
+            #We have three filters in this tab
+            # 1 - Pollutant
+            # 2 - Station name
+            # 3 - Category 
+
+            #The station names are dependent on the pollutant input (see server tab)
+
+            column(
+                4,
+                uiOutput("Pollutant_yearly")
+            ),
+
+            column(
+                4,
+                uiOutput("Station_Name_yearly")
+            ),
+            
+            column(
+                4,
+                pickerInput(
+                    inputId = "Category_yearly",
+                    label = "Metric",
+                    choices = categories,
+                    multiple = TRUE,
+                    selected = NULL,
+                    options = list(
+                        size = 10,
+                        "max-options" = 1
+                    )
+                )
+            )
+
+
+        ),
+
+
+        downloadButton(outputId = "download_yearly",
+                       label = "Download data",
+                       class = "yearlydatabutton"),
+
+        tags$head(
+            tags$style(".yearlydatabutton { background-color:
+                   #0072B2; }
+                   .yearlydatabutton { color: #FFFFFF; }")
+        ),
+
+        #In the main panel of the tab, insert the plot
+
+        mainPanel(
+            width = 12,
+            plotOutput("yearly_plot",
+                       width = "1090px",
+                       height = "500px") %>%
+
+                #Adding a loading spinner to let a user know that computations are taking place
+
+                shinycssloaders::withSpinner(),
+            br(),
+
+            #Inserting table, with option to collapse
+
+            HTML(
+                "<button data-toggle = 'collapse' href = '#yearlydata'
+                   class = 'btn btn-primary' id = 'yearlydata_link'>
+                   <strong> Show/hide table </strong></button>"
+            ),
+            HTML("<div id = 'yearlydata' class = 'collapse'>"),
+            br(),
+            dataTableOutput("yearlydata_table"),
+            HTML("</div>"),
+            br(),
+            br()
+        )
+    ),
+
+    #############################################
+    #############################################
+    #End of second data tab (third tab overall)##
+    #############################################
+    #############################################
+
+    ############################
+    ##TAB 4: Hourly totals tab##
+    ############################
+    
+    tabPanel(
+        "Hourly totals",
+        icon = icon("clock"),
+        style = "height: 95%; width: 95%; background-color: #FFFFFF;
+        border: 0px solid #FFFFFF;",
+
+        h3("Average and maximum hourly totals"),
+
+        p(
+            h4("Visualise average and maximum air pollution data by hour, and make comparisons between stations. ")
+
+        ),
+        bs_accordion(id = "hourly_data_text") %>%
+            bs_set_opts(panel_type = "primary") %>%
+            bs_append(title = tags$u("Data selection"),
+                      content = p(
+                          "The chart can be modified using the drop down boxes in the following order:",
+                          tags$ul(
+                              tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
+                              tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
+                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "). This will produce a dotplot visualising the options selected."))),
+                          ),
+                          HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
+                          br(), br(),
+                          "To download your data selection as a CSV file, use the
+                  'Download data' button under the drop down boxes.",
+                          br(),br(),
+                          "For technical information, please see the",
+                          actionLink(
+                              "link_to_home", "introduction"
+                          ), " page."
+                      ))%>%
+            bs_append(title = tags$u("Table functions"),
+                      content = p(HTML("To view
+        your data selection in a table, use the
+                            'Show/hide table' button at the
+                            bottom of the page."),
+                                  tags$ul(
+                                      tags$li(tags$b("Show entries"), " - change the number of rows shown
+                            in the table using the drop-down box."),
+                                      tags$li(tags$b("Search"), " - enter text to search data for a specific word or
+                            numerical value."),
+                                      tags$li(icon("sort", lib = "glyphicon"),
+                                              tags$b("Sort"), " - click to sort the table in ascending or
+                            descending order based on the values in a column."),
+                                      tags$li(tags$b("Page controls"), " - switch to specific page of data
+                            within the table.")
+                                  )
+                      )),
+        p(""),
+
+        wellPanel(
+            tags$style(
+                ".well { background-color: #FFFFFF;
+        border: 0px solid #336699; }"
+            ),
+
+            #Insert the reactive filters.
+            #We have three filters in this tab
+            # 1 - Pollutant
+            # 2 - Station name
+            # 3 - Category - NOTE THIS REQUIRES A DIFFERENT CATEGORY THAN THE PREVIOUS TWO TABS BECAUSE IT IS VISUALISING DATA BY HOUR RATHER THAN DAY
+
+            #The station names are dependent on the pollutant input (see server tab)
+
+            column(
+                4,
+                uiOutput("Pollutant_hourly")
+            ),
+
+            column(
+                4,
+                uiOutput("Station_Name_hourly")
+            ),
+
+            column(
+                4,
+                pickerInput(
+                    inputId = "Category_hourly",
+                    label = "Metric",
+                    choices = categories_hourly,
+                    multiple = TRUE,
+                    selected = NULL,
+                    options = list(
+                        size = 10,
+                        "max-options" = 1
+                    )
+                )
+            )
+
+
+        ),
+
+
+        downloadButton(outputId = "download_hourly",
+                       label = "Download data",
+                       class = "hourlydatabutton"),
+
+        tags$head(
+            tags$style(".hourlydatabutton { background-color:
+                   #0072B2; }
+                   .hourlydatabutton { color: #FFFFFF; }")
+        ),
+
+        #In the main panel of the tab, insert the plot
+
+        mainPanel(
+            width = 12,
+            plotOutput("hourly_plot",
+                       width = "1090px",
+                       height = "500px") %>%
+
+                #Adding a loading spinner to let a user know that computations are taking place
+
+                shinycssloaders::withSpinner(),
+            br(),
+
+            #Inserting table, with option to collapse
+
+            HTML(
+                "<button data-toggle = 'collapse' href = '#hourlydata'
+                   class = 'btn btn-primary' id = 'yearlydata_link'>
+                   <strong> Show/hide table </strong></button>"
+            ),
+            HTML("<div id = 'hourlydata' class = 'collapse'>"),
+            br(),
+            dataTableOutput("hourlydata_table"),
+            HTML("</div>"),
+            br(),
+            br()
+        )
+    )
+    
+    #########################
+    #########################
+    ##End of third data tab## 
+    #########################
+    #########################
+    
         )
 )
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# #######################
+# ##TAB 1: Raw data tab##
+# #######################
+# 
+# tabPanel(
+#     "Raw data",
+#     icon = icon("line-chart"),
+#     style = "height: 95%; width: 95%; background-color: #FFFFFF;
+#     border: 0px solid #FFFFFF;",
+# 
+#     h3("Raw data"),
+# 
+#     p(
+#         h4("Visualise raw air pollution data collected multiple times a day over time. ")
+# 
+#     ),
+#     bs_accordion(id = "raw_data_text") %>%
+#         bs_set_opts(panel_type = "primary") %>%
+#         bs_append(title = tags$u("Data selection"),
+#                   content = p(
+#                       "The chart can be modified using the drop down boxes in the following order:",
+#                       tags$ul(
+#                           tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
+#                           tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max).")
+#                       ),
+#                       HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
+#                       br(), br(),
+#                       "To download your data selection as a CSV file, use the
+#               'Download data' button under the drop down boxes.",
+#                       br(),br(),
+#                       "For technical information, please see the",
+#                       actionLink(
+#                           "link_to_home", "introduction"
+#                       ), " page."
+#                   ))%>%
+#         bs_append(title = tags$u("Table functions"),
+#                   content = p(HTML("To view
+#     your data selection in a table, use the
+#                         'Show/hide table'  button at the
+#                         bottom of the page."),
+#                               tags$ul(
+#                                   tags$li(tags$b("Show entries"), " - change the number of rows shown
+#                         in the table using the drop-down box."),
+#                                   tags$li(tags$b("Search"), " - enter text to search data for a specific word or
+#                         numerical value."),
+#                                   tags$li(icon("sort", lib = "glyphicon"),
+#                                           tags$b("Sort"), " - click to sort the table in ascending or
+#                         descending order based on the values in a column."),
+#                                   tags$li(tags$b("Page controls"), " - switch to specific page of data
+#                         within the table.")
+#                               )
+#                   )),
+#     p(""),
+# 
+#     wellPanel(
+#         tags$style(
+#             ".well { background-color: #FFFFFF;
+#     border: 0px solid #336699; }"
+#         ),
+# 
+#         #Insert the reactive filters.
+#         #We have two filters in this tab
+#         # 1 - Pollutant
+#         # 2 - Station name
+# 
+#         #The station names are dependent on the pollutant input (see server tab)
+# 
+#         column(
+#             4,
+#             pickerInput(
+#                 inputId = "Year",
+#                 label = "Year",
+#                 choices = yearselect,
+#                 multiple = TRUE,
+#                 selected = NULL,
+#                 options = list(
+#                     size = 10,
+#                     "max-options" = 1
+#                 )
+#             )
+#         ),
+#         
+#         column(
+#             4,
+#             uiOutput("Pollutant_rawdata")
+#         ),
+# 
+#         column(
+#             4,
+#             uiOutput("Station_Name_rawdata")
+#         ),
+# 
+# 
+#     ),
+# 
+# 
+#     downloadButton(outputId = "download_rawdata",
+#                    label = "Download data",
+#                    class = "rawdatabutton"),
+# 
+#     tags$head(
+#         tags$style(".rawdatabutton { background-color:
+#                #0072B2; }
+#                .rawdatabutton { color: #FFFFFF; }")
+#     ),
+# 
+#     #In the main panel of the tab, insert the geography plot
+# 
+#     mainPanel(
+#         width = 12,
+#         plotOutput("rawdata_plot",
+#                    width = "1090px",
+#                    height = "500px") %>%
+# 
+#             #Adding a loading spinner to let a user know that computations are taking place
+# 
+#             shinycssloaders::withSpinner(),
+#         br(),
+# 
+#         #Inserting table, with option to collapse
+# 
+#         HTML(
+#             "<button data-toggle = 'collapse' href = '#rawdata'
+#                class = 'btn btn-primary' id = 'rawdata_link'>
+#                <strong> Show/hide table </strong></button>"
+#         ),
+#         HTML("<div id = 'rawdata' class = 'collapse'>"),
+#         br(),
+#         dataTableOutput("rawdata_table"),
+#         HTML("</div>"),
+#         br(),
+#         br()
+#     )
+# ),
+
+#######################
+#######################
+#End of first data tab#
+#######################
+#######################

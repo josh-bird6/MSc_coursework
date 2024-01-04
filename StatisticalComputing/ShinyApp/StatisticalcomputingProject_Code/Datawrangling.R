@@ -14,11 +14,14 @@ plottheme <-
   theme_bw()+
   theme(plot.title = element_text(size = 20),
         axis.text = element_text(size=15),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         axis.title = element_text(size=20),
         legend.text = element_text(size=15),
         legend.title = element_text(size=20),
         legend.position = "bottom",
-        plot.caption = element_text(size=15)) 
+        plot.caption = element_text(size=15),
+        plot.subtitle = element_text(size=15),
+        panel.grid.minor = element_blank()) 
 
 
 ###################################
@@ -26,9 +29,43 @@ plottheme <-
 ###################################
 
 Tab2_Dataset <- basedata_final %>% 
-  group_by(yearmon, StationName, AirPollutant) %>% 
+  group_by(`Date`, StationName, AirPollutant) %>% 
   summarise(`Daily average` = mean(Concentration),
             `Daily max` = max(Concentration)) %>% 
+  pivot_longer(4:5, names_to = "category", values_to="total") %>% 
+  mutate(total = round(total, 1))
+
+##################################
+##Creating dataset for third tab##
+##################################
+
+Tab3_Dataset <- basedata_final %>% 
+  group_by(Year, Month, Day, AirPollutant, StationName) %>%
+  summarise(
+    `Daily average` = mean(Concentration),
+    `Daily max` = max(Concentration)
+  ) %>% 
+  filter(!is.na(`Daily average`)) %>% 
+  ungroup() %>% 
+  select(-Year) %>% 
+  group_by(Month, Day, AirPollutant, StationName) %>% 
+  summarise(`Daily average` = mean(`Daily average`),
+            `Daily max` = max(`Daily max`)) %>% 
+  pivot_longer(5:6, names_to = "category", values_to="total") %>% 
+  mutate(total = round(total, 1),
+         Month = month.abb[as.numeric(Month)])
+
+Tab3_Dataset$`Date` <- lubridate::myd(paste(Tab3_Dataset$Month, 2000, Tab3_Dataset$Day))
+
+###################################
+##Creating dataset for fourth tab##
+###################################
+
+Tab4_Dataset <- basedata_final %>%
+  select(Hour, StationName, AirPollutant, Concentration) %>%
+  group_by(Hour, StationName, AirPollutant) %>%
+  summarise(`Hourly average` = mean(Concentration, na.rm = T),
+            `Hourly max` = max(Concentration, na.rm = T)) %>% 
   pivot_longer(4:5, names_to = "category", values_to="total") %>% 
   mutate(total = round(total, 1))
 
@@ -42,11 +79,16 @@ yearselect <- unique(basedata_final$Year) %>% sort()
 #Selction for pollutant name
 pollutant_name <- unique(basedata_final$AirPollutant)
 
-#Creating station options for individual pollutants, as some stations don't record everything - in other words, users can only select one pollutant at a time
+#Metrics
+categories <- unique(Tab2_Dataset$category)
+
+categories_hourly <- unique(Tab4_Dataset$category)
+
+###Creating station options for individual pollutants, as some stations don't record everything - in other words, users can only select one pollutant at a time
 
 #first the cleaning function
-stationname_function <- function(pollutant) {
-  basedata_final %>%
+stationname_function <- function(df, pollutant) {
+  df %>%
     filter(AirPollutant == pollutant) %>%
     select(StationName) %>%
     unique() %>%
@@ -54,11 +96,10 @@ stationname_function <- function(pollutant) {
 }
 #Now creating a dataframe for each pollutant with respective station names
 
-NO2_stations <- stationname_function("NO2")
-PM10_stations <- stationname_function("PM10")
-PM2.5_stations <- stationname_function("PM2.5")
-SO2_stations <- stationname_function("SO2")
+NO2_stations <- stationname_function(basedata_final, "NO2")
+PM10_stations <- stationname_function(basedata_final, "PM10")
+PM2.5_stations <- stationname_function(basedata_final, "PM2.5")
+SO2_stations <- stationname_function(basedata_final, "SO2")
 
-#Metrics
-categories <- unique(Tab2_Dataset$category)
+
 
