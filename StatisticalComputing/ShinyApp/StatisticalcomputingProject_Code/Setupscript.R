@@ -43,7 +43,7 @@ basedata_final <-
   basedata %>% 
   left_join(locations, by="AirQualityStationEoICode") 
 
-#formatting date column
+#formatting date column into single column
 basedata_final$`Date` <- lubridate::myd(paste(basedata_final$Month, basedata_final$Year, basedata_final$Day))
 
 

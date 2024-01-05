@@ -6,9 +6,9 @@
 ########################
 ########################
 
-#####################################
-##Creating plot theme for first tab##
-#####################################
+##########################################
+##Creating plot theme for visualisations##
+##########################################
 
 plottheme <- 
   theme_bw()+
@@ -59,6 +59,48 @@ Tab3_Dataset$`Date` <- lubridate::myd(paste(Tab3_Dataset$Month, 2000, Tab3_Datas
 
 ###################################
 ##Creating dataset for fourth tab##
+###################################
+
+Tab4_Dataset_wrangle <- basedata_final
+
+Tab4_Dataset_wrangle$dayofweek <- lubridate::wday(Tab4_Dataset_wrangle$Date, label = T, abbr = F)
+
+
+
+##Creating two datasets, one for day of week..........
+Tab4_Dataset_dayofweek <- Tab4_Dataset_wrangle %>% 
+  select(dayofweek, StationName, AirPollutant, Concentration) %>%
+  group_by(dayofweek, StationName, AirPollutant) %>%
+  summarise(`Daily average` = mean(Concentration, na.rm = T),
+            `Daily max` = max(Concentration, na.rm = T)) %>% 
+  pivot_longer(4:5, names_to = "category", values_to="total") %>% 
+  mutate(total = round(total, 1),
+         classification = dayofweek) %>% 
+  ungroup() %>% 
+  select(-dayofweek)
+
+#.........and another for hour of week
+Tab4_Dataset_hourofweek <- Tab4_Dataset_wrangle %>%
+  select(Hour, dayofweek, StationName, AirPollutant, Concentration) %>%
+  group_by(Hour,dayofweek, StationName, AirPollutant) %>%
+  summarise(`Hourly average` = mean(Concentration, na.rm = T),
+            `Hourly max` = max(Concentration, na.rm = T)) %>% 
+  mutate(classification = case_when(dayofweek == "Sunday"~Hour,
+                          dayofweek == "Monday"~(Hour+24),
+                          dayofweek == "Tuesday"~(Hour+(24*2)),
+                          dayofweek == "Wednesday"~(Hour+(24*3)),
+                          dayofweek == "Thursday"~(Hour+(24*4)),
+                          dayofweek == "Friday"~(Hour+(24*5)),
+                          dayofweek == "Saturday"~(Hour+(24*6)),
+                          T~(Hour+(24*7)))) %>% 
+  pivot_longer(5:6, names_to = "category", values_to="total") %>% 
+  mutate(total = round(total, 1)) %>% 
+  ungroup() %>% 
+  select(3,4,6,7,5)
+
+
+###################################
+##Creating dataset for fifth tab###
 ###################################
 
 Tab4_Dataset <- basedata_final %>%
