@@ -17,6 +17,8 @@ library(shinyWidgets)
 library(shinymanager)
 library(shinyBS)
 library(bsplus)
+library(leaflet)
+library(sf)
 
 ################
 ##Importing data

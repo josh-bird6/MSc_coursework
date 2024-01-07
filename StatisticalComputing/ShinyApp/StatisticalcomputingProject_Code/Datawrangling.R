@@ -14,7 +14,6 @@ plottheme <-
   theme_bw()+
   theme(plot.title = element_text(size = 20),
         axis.text = element_text(size=15),
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         axis.title = element_text(size=20),
         legend.text = element_text(size=15),
         legend.title = element_text(size=20),
@@ -22,6 +21,16 @@ plottheme <-
         plot.caption = element_text(size=15),
         plot.subtitle = element_text(size=15),
         panel.grid.minor = element_blank()) 
+
+############################
+##Creating dataset for map##
+############################
+
+map_basedata <- basedata_final %>% 
+  select(10,6,8,9) %>% 
+  unique() %>% 
+  st_as_sf(coords=c("Longitude", "Latitude")) %>% 
+  st_set_crs(4326)
 
 
 ###################################

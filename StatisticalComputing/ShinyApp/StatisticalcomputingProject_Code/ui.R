@@ -29,6 +29,8 @@ fluidPage(
             ".shiny-output-error { visibility: hidden; }",
             ".shiny-output-error:before { visibility: hidden; }"
         ),
+        
+        #Found a really neat widget which ensures that the iFrame is automatically resized to the content size
         tags$head(
             tags$script(src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.16/iframeResizer.contentWindow.min.js",
                         type="text/javascript")
@@ -74,14 +76,14 @@ tabsetPanel(
                    br(),
                    "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 1 January 2013 and 31 December 2018. You can visualise these data using the following pages:"
                    ),
-               tags$ul(tags$li("Aggregated time series data",
-                               " - compare daily average and daily maximum air pollution data over the entire time series and between stations.")),
-               tags$ul(tags$li("Daily data by day of year",
-                               " - compare average and maximum air pollution data by day of the year, and between stations.")),
-               tags$ul(tags$li("Daily data by day and hour of week",
-                               " - compare average and maximum air pollution data by day and hour of the week, and between stations.")),
-               tags$ul(tags$li("Hourly data",
-                               " - compare average and maximum air pollution data by hour of the day, and between stations.")),
+               tags$ul(tags$li(HTML(paste0("<b>Aggregated time series data</b>:"),  
+                               ("compare daily average and daily maximum air pollution data over the entire time series and between stations.")))),
+               tags$ul(tags$li(HTML(paste0("<b>Daily data by day of year</b>:"),
+                               ("compare average and maximum air pollution data by day of the year, and between stations.")))),
+               tags$ul(tags$li(HTML(paste0("<b>Daily data by day and hour of week</b>:"),
+                               ("compare average and maximum air pollution data by day and hour of the week (hour 0 is midnight on Sunday), and between stations.")))),
+               tags$ul(tags$li(HTML(paste0("<b>Hourly data</b>:"),
+                               ("compare average and maximum air pollution data by hour of the day, and between stations.")))),
                bs_accordion(id = "dashboard_introductory_text") %>%
                    bs_set_opts(panel_type = "primary") %>%
                    bs_append(
@@ -152,55 +154,102 @@ tabsetPanel(
     ##TAB 2: Time series tab##
     ##########################
     
-        tabPanel(
+    tabPanel(
         "Aggregated time series data",
         icon = icon("line-chart"),
         style = "height: 95%; width: 95%; background-color: #FFFFFF;
         border: 0px solid #FFFFFF;",
         
-        h3("Aggregated series data"),
+        h3("Average and maximum data over the entire time series"),
         
         p(
-            h4("Visualise daily average and daily maximum air pollution data over the entire time series, and make comparisons between stations. ")
-                
-            ),
-        bs_accordion(id = "timeseries_data_text") %>% 
+            h4(
+                "Visualise daily average and daily maximum air pollution data over the entire time series, and make comparisons between stations. "
+            )
+            
+        ),
+        bs_accordion(id = "timeseries_data_text") %>%
             bs_set_opts(panel_type = "primary") %>%
-            bs_append(title = tags$u("Data selection"), 
-                      content = p(
-                          "The chart can be modified using the drop down boxes in the following order:", 
-                          tags$ul(
-                              tags$li(HTML(paste0("First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulphur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
-                              tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particluar pollutant (3 selections max)."),
-                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "). This will produce a linechart visualising the options selected."))),
-                          ), 
-                          HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
-                          br(), br(),
-                          "To download your data selection as a CSV file, use the
-                  'Download data' button under the drop down boxes.", 
-                          br(),br(),
-                          "For technical information, please see the",
-                          actionLink(
-                              "link_to_home", "introduction"
-                          ), " page."
-                      ))%>%
-            bs_append(title = tags$u("Table functions"), 
-                      content = p(HTML("To view your data selection in a table, use the
+            bs_append(
+                title = tags$u("Data selection"),
+                content = p(
+                    "The chart can be modified using the drop down boxes in the following order:",
+                    tags$ul(
+                        tags$li(HTML(
+                            paste0(
+                                "First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulphur dioxide (SO",
+                                tags$sub("2"),
+                                "); Nitrogen dioxide (NO",
+                                tags$sub("2"),
+                                ")."
+                            )
+                        )),
+                        tags$li(
+                            "This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particluar pollutant (3 selections max)."
+                        ),
+                        tags$li(HTML(
+                            paste0(
+                                "Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m",
+                                tags$sup("3"),
+                                ")."
+                            )
+                        )),
+                    ),
+                    "Making these selections will produce a linechart visualising the options selected, as well as a map underneath showing where each of these stations is located.",
+                    br(),
+                    br(),
+                    HTML(
+                        paste0(
+                            "<b>NOTE</b>",
+                            ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from."
+                        )
+                    ),
+                    br(),
+                    br(),
+                    "To download your data selection as a CSV file, use the
+                  'Download data' button under the drop down boxes.",
+                    br(),
+                    br(),
+                    "For technical information, please see the",
+                    actionLink("link_to_home", "introduction"),
+                    " page."
+                )
+            ) %>%
+            bs_append(
+                title = tags$u("Table functions"),
+                content = p(
+                    HTML(
+                        "To view your data selection in a table, use the
                             'Show/hide table'  button at the
-                            bottom of the page."),
-                                  tags$ul(
-                                      tags$li(tags$b("Show entries"), " - change the number of rows shown
-                            in the table using the drop-down box."),
-                                      tags$li(tags$b("Search"), " - enter text to search data for a specific word or
-                            numerical value."),
-                                      tags$li(icon("sort", lib = "glyphicon"),
-                                              tags$b("Sort"), " - click to sort the table in ascending or 
-                            descending order based on the values in a column."),
-                                      tags$li(tags$b("Page controls"), " - switch to specific page of data 
-                            within the table.")
-                                  )
-                      )),
+                            bottom of the page."
+                    ),
+                    tags$ul(
+                        tags$li(
+                            tags$b("Show entries"),
+                            " - change the number of rows shown
+                            in the table using the drop-down box."
+                        ),
+                        tags$li(
+                            tags$b("Search"),
+                            " - enter text to search data for a specific word or
+                            numerical value."
+                        ),
+                        tags$li(
+                            icon("sort", lib = "glyphicon"),
+                            tags$b("Sort"),
+                            " - click to sort the table in ascending or
+                            descending order based on the values in a column."
+                        ),
+                        tags$li(
+                            tags$b("Page controls"),
+                            " - switch to specific page of data
+                            within the table."
+                        )
+                    )
+                )
+            ),
         p(""),
+        
         
         wellPanel(
             tags$style(
@@ -256,10 +305,13 @@ tabsetPanel(
                    .aggregatedbutton { color: #FFFFFF; }")
         ),
         
-        #In the main panel of the tab, insert the time series plot
+        #In the main panel of the tab.... 
         
         mainPanel(
             width = 12,
+            
+            #Inserting time series plot
+            
             plotOutput("timeseries_plot",
                        width = "1090px",
                        height = "500px") %>%
@@ -267,6 +319,11 @@ tabsetPanel(
                 #Adding a loading spinner to let a user know that computations are taking place
                 
                 shinycssloaders::withSpinner(),
+            br(),
+            
+            #Inserting map
+            
+            leafletOutput(outputId = 'map_tab2'),
             br(),
             
             #Inserting table, with option to collapse
@@ -313,10 +370,12 @@ tabsetPanel(
                       content = p(
                           "The chart can be modified using the drop down boxes in the following order:",
                           tags$ul(
-                              tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
+                              tags$li(HTML(paste0("First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
                               tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
-                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "). This will produce a dotplot visualising the options selected."))),
+                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), ")."))),
                           ),
+                          "Making these selections will produce a dotplot visualising the options selected, as well as a map underneath showing where each of these stations is located.",
+                          br(), br(),
                           HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
                           br(), br(),
                           "To download your data selection as a CSV file, use the
@@ -411,6 +470,11 @@ tabsetPanel(
 
                 shinycssloaders::withSpinner(),
             br(),
+            
+            #Inserting map
+            
+            leafletOutput(outputId = 'map_tab3'),
+            br(),
 
             #Inserting table, with option to collapse
 
@@ -433,12 +497,6 @@ tabsetPanel(
     #End of second data tab (third tab overall)##
     #############################################
     #############################################
-
-    #############################################
-    #############################################
-    #End of second data tab (third tab overall)##
-    #############################################
-    #############################################
     
     ############################
     ##TAB 5: Daily totals tab##
@@ -453,7 +511,7 @@ tabsetPanel(
         h3("Average and maximum data by day and hour of the week"),
         
         p(
-            h4("Visualise average and maximum air pollution data by day and hour of the week, and make comparisons between stations. ")
+            h4("Visualise average and maximum air pollution data by day and hour of the week (hour 0 is midnight on Sunday), and make comparisons between stations. ")
             
         ),
         bs_accordion(id = "daily_data_text") %>%
@@ -462,10 +520,13 @@ tabsetPanel(
                       content = p(
                           "The chart can be modified using the drop down boxes in the following order:",
                           tags$ul(
-                              tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
+                              tags$li(HTML(paste0("First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
                               tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
-                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "). This will produce a dotplot visualising the options selected."))),
+                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), ")."))),
+                              
                           ),
+                          "Making these selections will produce a dotplot visualising the options selected, as well as a map underneath showing where each of these stations is located.",
+                          br(), br(),
                           HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
                           br(), br(),
                           "To download your data selection as a CSV file, use the
@@ -561,11 +622,16 @@ tabsetPanel(
                 shinycssloaders::withSpinner(),
             br(),
             
+            #Inserting map
+            
+            leafletOutput(outputId = 'map_tab4'),
+            br(),
+            
             #Inserting table, with option to collapse
             
             HTML(
                 "<button data-toggle = 'collapse' href = '#dailydata'
-                   class = 'btn btn-primary' id = 'yearlydata_link'>
+                   class = 'btn btn-primary' id = 'dailydata_link'>
                    <strong> Show/hide table </strong></button>"
             ),
             HTML("<div id = 'dailydata' class = 'collapse'>"),
@@ -587,10 +653,10 @@ tabsetPanel(
         style = "height: 95%; width: 95%; background-color: #FFFFFF;
         border: 0px solid #FFFFFF;",
 
-        h3("Average and maximum hourly data"),
+        h3("Average and maximum data by hour of the day"),
 
         p(
-            h4("Visualise average and maximum air pollution data by hour, and make comparisons between stations. ")
+            h4("Visualise average and maximum air pollution data by hour of the day, and make comparisons between stations. ")
 
         ),
         bs_accordion(id = "hourly_data_text") %>%
@@ -599,10 +665,13 @@ tabsetPanel(
                       content = p(
                           "The chart can be modified using the drop down boxes in the following order:",
                           tags$ul(
-                              tags$li(HTML(paste0("First select a Pollutant. Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
+                              tags$li(HTML(paste0("First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
                               tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
-                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), "). This will produce a dotplot visualising the options selected."))),
+                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), ")."))),
                           ),
+                          "Making these selections will produce a dotplot visualising the options selected, as well as a map underneath showing where each of these stations is located.",
+                          br(),
+                          br(),
                           HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from. Also, some stations only record certain pollutants once a day (usually 00.00) - these selections will therefore produce a graph with a single data point.")),
                           br(), br(),
                           "To download your data selection as a CSV file, use the
@@ -697,12 +766,17 @@ tabsetPanel(
 
                 shinycssloaders::withSpinner(),
             br(),
+            
+            #Inserting map
+            
+            leafletOutput(outputId = 'map_tab5'),
+            br(),
 
             #Inserting table, with option to collapse
 
             HTML(
                 "<button data-toggle = 'collapse' href = '#hourlydata'
-                   class = 'btn btn-primary' id = 'yearlydata_link'>
+                   class = 'btn btn-primary' id = 'hourlydata_link'>
                    <strong> Show/hide table </strong></button>"
             ),
             HTML("<div id = 'hourlydata' class = 'collapse'>"),
