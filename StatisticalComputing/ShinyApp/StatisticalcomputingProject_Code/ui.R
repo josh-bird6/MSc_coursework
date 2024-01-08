@@ -76,14 +76,14 @@ tabsetPanel(
                    br(),
                    "This dashboard provides a detailed breakdown of air pollution recorded in Czechia between 1 January 2013 and 31 December 2018. You can visualise these data using the following pages:"
                    ),
-               tags$ul(tags$li(HTML(paste0("<b>Aggregated time series data</b>:"),  
-                               ("compare daily average and daily maximum air pollution data over the entire time series and between stations.")))),
+               tags$ul(tags$li(HTML(paste0("<b>Time series data</b>:"),  
+                               ("compare air pollution data over the entire time series and between stations.")))),
                tags$ul(tags$li(HTML(paste0("<b>Daily data by day of year</b>:"),
-                               ("compare average and maximum air pollution data by day of the year, and between stations.")))),
+                               ("compare air pollution data by day of the year, and between stations.")))),
                tags$ul(tags$li(HTML(paste0("<b>Daily data by day and hour of week</b>:"),
-                               ("compare average and maximum air pollution data by day and hour of the week (hour 0 is midnight on Sunday), and between stations.")))),
+                               ("compare air pollution data by day and hour of the week (hour 0 is midnight on Sunday), and between stations.")))),
                tags$ul(tags$li(HTML(paste0("<b>Hourly data</b>:"),
-                               ("compare average and maximum air pollution data by hour of the day, and between stations.")))),
+                               ("compare air pollution data by hour of the day, and between stations.")))),
                bs_accordion(id = "dashboard_introductory_text") %>%
                    bs_set_opts(panel_type = "primary") %>%
                    bs_append(
@@ -155,16 +155,16 @@ tabsetPanel(
     ##########################
     
     tabPanel(
-        "Aggregated time series data",
+        "Time series data",
         icon = icon("line-chart"),
         style = "height: 95%; width: 95%; background-color: #FFFFFF;
         border: 0px solid #FFFFFF;",
         
-        h3("Average and maximum data over the entire time series"),
+        h3("Time series data"),
         
         p(
             h4(
-                "Visualise daily average and daily maximum air pollution data over the entire time series, and make comparisons between stations. "
+                "Visualise air pollution data over the entire time series, and make comparisons between stations. "
             )
             
         ),
@@ -189,13 +189,13 @@ tabsetPanel(
                         ),
                         tags$li(HTML(
                             paste0(
-                                "Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m",
+                                "Finally, select the metric of interest: either the raw unaggregated data, or an aggregation (daily average or daily max concentration). All selections are measured in µg/m",
                                 tags$sup("3"),
                                 ")."
                             )
                         )),
                     ),
-                    "Making these selections will produce a linechart visualising the options selected, as well as a map underneath showing where each of these stations is located.",
+                    "Making these selections will produce a plot visualising the options selected, as well as a map underneath showing where each of these stations is located. Pollution thresholds are (where applicable) denoted by a horizontal line – more information on these thresholds can be found on the", actionLink("link_to_home", "introduction")," page.",
                     br(),
                     br(),
                     HTML(
@@ -207,12 +207,7 @@ tabsetPanel(
                     br(),
                     br(),
                     "To download your data selection as a CSV file, use the
-                  'Download data' button under the drop down boxes.",
-                    br(),
-                    br(),
-                    "For technical information, please see the",
-                    actionLink("link_to_home", "introduction"),
-                    " page."
+                  'Download data' button under the drop down boxes."
                 )
             ) %>%
             bs_append(
@@ -280,7 +275,7 @@ tabsetPanel(
                 pickerInput(
                     inputId = "Category",
                     label = "Metric",
-                    choices = categories,
+                    choices = categories_combined,
                     multiple = TRUE,
                     selected = NULL,
                     options = list(
@@ -790,7 +785,7 @@ tabsetPanel(
     
     #########################
     #########################
-    ##End of fourth data tab## 
+    ##End of final data tab## 
     #########################
     #########################
     

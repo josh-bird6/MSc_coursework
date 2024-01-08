@@ -22,6 +22,35 @@ plottheme <-
         plot.subtitle = element_text(size=15),
         panel.grid.minor = element_blank()) 
 
+####################################################################
+##Creating blank plot and message prompting user to make selection##
+####################################################################
+
+promptmessage <- function() {
+  
+  set.seed(20)
+  x <- rnorm(10)
+  y <- rnorm(10, 1, .5)
+  
+  data.frame(x, y) %>%
+    ggplot(aes(x, y)) +
+    labs(x = "",
+         y = "") +
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank()
+    ) +
+    annotate("text",
+             x = 5,
+             5,
+             label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above \n\n(Note that the chart may take some time to \nrender due to the size of the underlying dataset)",
+             size = 11)
+  
+}
+
 ############################
 ##Creating dataset for map##
 ############################
@@ -132,6 +161,16 @@ pollutant_name <- unique(basedata_final$AirPollutant)
 
 #Metrics
 categories <- unique(Tab2_Dataset$category)
+
+# categories <- c("Daily average", "Daily max", "Raw data")
+
+categories_raw <- "Raw data"
+
+categories_combined <- c(categories, categories_raw)
+
+
+
+
 
 categories_hourly <- unique(Tab4_Dataset$category)
 

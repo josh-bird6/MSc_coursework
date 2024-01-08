@@ -57,16 +57,72 @@ shinyServer(function(input, output, session)
         )
     })
     
+    
+    ######################################################################################
+
+    tab2_dataoutput_test <- reactive({
+        tab2_raw <- datasets_wd %>%
+            mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
+            left_join(locations, by = "AirQualityStationEoICode") %>%
+            filter(str_detect(filepath, input$Pollutant),
+                   StationName %in% input$Station_Name) %>%
+            rowwise() %>%
+            do(., read_csv(file = .$filepath)) %>%
+            mutate(category = "Raw data",
+                   Date = lubridate::make_date(Year,Month,Day),
+                   total = Concentration) %>%
+            left_join(locations, by = "AirQualityStationEoICode")
+
+    })
+
+    
+    
+    
+    ######################################################################################
+    
     #Plot graph based on the user input.
     #First we create a subset based on user input
     
     tab2_dataoutput <- reactive({
-        Tab2_Dataset %>%
-            filter(StationName %in% input$Station_Name 
-                   & AirPollutant %in% input$Pollutant 
-                   & categories %in% input$Category
-            )
-        })
+      
+        #If user selects Raw data
+          if (input$Category ==
+            "Raw data")
+            
+        {
+              datasets_wd %>%
+                  mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
+                  left_join(locations, by = "AirQualityStationEoICode") %>%
+                  filter(str_detect(filepath, input$Pollutant),
+                         StationName %in% input$Station_Name) %>%
+                  rowwise() %>%
+                  do(., read_csv(file = .$filepath)) %>%
+                  mutate(
+                      category = "Raw data",
+                      Date = lubridate::make_date(Year, Month, Day),
+                      total = round(Concentration,1)
+                  ) %>%
+                  left_join(locations, by = "AirQualityStationEoICode") %>%
+                  select(Date, StationName, AirPollutant, category, total, Hour) %>%
+                  unique() %>% 
+                  filter(
+                      StationName %in% input$Station_Name
+                      & AirPollutant %in% input$Pollutant
+                      & categories_raw %in% input$Category,
+                      !is.na(total)
+                  )
+        }
+        
+        #If user selects an average
+        else {
+            Tab2_Dataset %>%
+                filter(
+                    StationName %in% input$Station_Name
+                    & AirPollutant %in% input$Pollutant
+                    & categories %in% input$Category
+                )
+        }
+    })
     
     #############
     #Plot output#
@@ -77,35 +133,56 @@ shinyServer(function(input, output, session)
         ## Default output is message in a blank ggplot object telling users to make proper selections
         
         if (is.null(input$Station_Name) |
-             is.null(input$Pollutant) |
-             is.null(input$Category)
-        )
+            is.null(input$Pollutant) |
+            is.null(input$Category))
             
-        { 
-            set.seed(20)
-            x <- rnorm(10)
-            y <- rnorm(10,1,.5)
-            
-            data.frame(x,y) %>% 
-                ggplot(aes(x,y))+
-                labs(x="",
-                       y="")+
-                theme(panel.grid = element_blank(),
-                      axis.text.x=element_blank(),
-                      axis.ticks.x=element_blank(),
-                      axis.text.y=element_blank(),
-                      axis.ticks.y=element_blank())+
-                annotate("text", x=5,5, label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above \n\n(Note that the chart may take some time to \nrender due to the size of the underlying dataset)", size=11)
-           }
+        {
+            promptmessage()
+        }
+        
+        
         
         # If conditions are met, chart is plotted
         
+        ##FIRST IF USER SELECTS RAW DATA
+        else if (input$Category ==
+                       "Raw data") 
+            {
+            
+            vis_tab2 <- ggplot(tab2_dataoutput(), aes(x=`Date`, y=total, group=StationName, color=StationName))+
+                geom_point(aes(group = StationName, color = StationName))+
+                labs(title = paste0(input$Pollutant, " pollution (raw data)"),
+                     y= paste0(input$Pollutant, " concentration (µg/m3)"),
+                     x="Date",
+                     caption = "Source: European Environmental Agency",
+                     color = "Station Name") +
+                plottheme +
+                theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+                scale_y_continuous(limits = c(0,max(tab2_dataoutput()$total))) +
+                scale_x_date(date_breaks = "3 months", date_labels = "%b-%Y")
+            
+            
+            if (input$Category == "Daily average"
+                & input$Pollutant == "SO2")
+                
+            {
+                vis_tab2 + geom_hline(yintercept = 125, linetype = "dashed") +
+                    labs(subtitle = "Dashed line corresponds to daily average limit for SO2 (see Introduction page for more information)")
+                
+            }
+            
+            else {
+                vis_tab2
+            }
+        }
+        
+        ##IF USER SELECTS AN AGGREGATION
         else {
 
            vis_tab2 <- ggplot(tab2_dataoutput(), aes(x=`Date`, y = total, group = StationName, color = StationName))+
-            geom_line(aes(group = StationName, color = StationName))+
+            geom_line(aes(group = StationName, color = StationName)) +
             labs(title = paste0(input$Pollutant, " ",input$Category),
-                 y= paste0(input$Category, " ", input$Pollutant, " concentration (µg/m3)"),
+                 y= paste0(input$Pollutant, " concentration (µg/m3)"),
                  x="Date",
                  caption = "Source: European Environmental Agency",
                  color = "Station Name") +
@@ -113,20 +190,20 @@ shinyServer(function(input, output, session)
             theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
             scale_y_continuous(limits = c(0,max(tab2_dataoutput()$total))) +
             scale_x_date(date_breaks = "3 months", date_labels = "%b-%Y")
-    
-            if(input$Category == "Daily average" 
+
+           #Adding horizontal line dependent on user selection
+           if (input$Category == "Daily average"
                & input$Pollutant == "PM10")
-            {
-                vis_tab2 + geom_hline(yintercept = 50, linetype = "dashed") +
-                    labs(subtitle = "Dashed line corresponds to daily average limit for PM10 (see Introduction page for more information)")
-                
-            }
-            else {
-                
-                vis_tab2
-                
-            }
-            
+           {
+               vis_tab2 + geom_hline(yintercept = 50, linetype = "dashed") +
+                   labs(subtitle = "Dashed line corresponds to daily average limit for PM10 (see Introduction page for more information)")
+               
+           }
+           else {
+               vis_tab2
+               
+           }
+           
         }
             
     })
@@ -165,9 +242,18 @@ shinyServer(function(input, output, session)
     ##############
     
     output$timeseries_table <- renderDataTable({
-        tab2_dataoutput() %>% 
-            pivot_wider(names_from = StationName, values_from = total)
+        if (input$Category ==
+            "Raw data")
+            
+            #There is an issue with pivoting when there are multiple selections in a single day, so raw data will be presented in long format
+        {
+            tab2_dataoutput()
+        }
         
+        else {
+            tab2_dataoutput() %>%
+                pivot_wider(names_from = StationName, values_from = total)
+        }
     })
     
     #################
@@ -260,20 +346,7 @@ shinyServer(function(input, output, session)
         )
 
         {
-            set.seed(20)
-            x <- rnorm(10)
-            y <- rnorm(10,1,.5)
-
-            data.frame(x,y) %>%
-                ggplot(aes(x,y))+
-                labs(x="",
-                     y="")+
-                theme(panel.grid = element_blank(),
-                      axis.text.x=element_blank(),
-                      axis.ticks.x=element_blank(),
-                      axis.text.y=element_blank(),
-                      axis.ticks.y=element_blank())+
-                annotate("text", x=5,5, label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above", size=11)
+            promptmessage()
         }
 
         # If conditions are met, chart is plotted
@@ -461,20 +534,7 @@ shinyServer(function(input, output, session)
         )
             
         {
-            set.seed(20)
-            x <- rnorm(10)
-            y <- rnorm(10,1,.5)
-            
-            data.frame(x,y) %>%
-                ggplot(aes(x,y))+
-                labs(x="",
-                     y="")+
-                theme(panel.grid = element_blank(),
-                      axis.text.x=element_blank(),
-                      axis.ticks.x=element_blank(),
-                      axis.text.y=element_blank(),
-                      axis.ticks.y=element_blank())+
-                annotate("text", x=5,5, label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above", size=11)
+            promptmessage()
         }
         
         # If conditions are met, chart is plotted
@@ -691,20 +751,7 @@ shinyServer(function(input, output, session)
             )
 
         {
-            set.seed(20)
-            x <- rnorm(10)
-            y <- rnorm(10,1,.5)
-
-            data.frame(x,y) %>%
-                ggplot(aes(x,y))+
-                labs(x="",
-                     y="")+
-                theme(panel.grid = element_blank(),
-                      axis.text.x=element_blank(),
-                      axis.ticks.x=element_blank(),
-                      axis.text.y=element_blank(),
-                      axis.ticks.y=element_blank())+
-                annotate("text", x=5,5, label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above", size=11)
+            promptmessage()
         }
 
         # If conditions are met, chart is plotted
