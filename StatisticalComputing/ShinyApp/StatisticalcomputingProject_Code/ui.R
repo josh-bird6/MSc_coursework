@@ -111,7 +111,7 @@ tabsetPanel(
                                    ),
                                    tags$li(
                                        HTML(paste0(
-                                           "<b>Sulphur dioxide (SO", tags$sub("2"), ")</b>"
+                                           "<b>Sulfur dioxide (SO", tags$sub("2"), ")</b>"
                                        )),
                                        "Hourly concentration exceeding 350",
                                        HTML(paste0("<em>µg/m", tags$sup("3"), "</em>")),
@@ -256,7 +256,7 @@ tabsetPanel(
             #We have three filters in this tab
             # 1 - Pollutant
             # 2 - Station name
-            # 3 - Metric (daily avg or daily max)
+            # 3 - Metric of interest
             
             #The station names are dependent on the pollutant input (see server tab)
 
@@ -337,11 +337,11 @@ tabsetPanel(
         )
         ),
     
-    ############################################
-    ############################################
-    #End of first data tab (second tab overall##
-    ############################################
-    ############################################
+    #############################################
+    #############################################
+    #End of first data tab (second tab overall)##
+    #############################################
+    #############################################
     
     ###########################
     ##TAB 3: Daily totals tab##
@@ -353,10 +353,10 @@ tabsetPanel(
         style = "height: 95%; width: 95%; background-color: #FFFFFF;
         border: 0px solid #FFFFFF;",
 
-        h3("Average and maximum data by day of the year"),
+        h3("Data by day of the year"),
 
         p(
-            h4("Visualise average and maximum air pollution data by day of the year, and make comparisons between stations. ")
+            h4("Visualise air pollution data by day of the year, and make comparisons between stations. ")
 
         ),
         bs_accordion(id = "yearly_data_text") %>%
@@ -367,19 +367,20 @@ tabsetPanel(
                           tags$ul(
                               tags$li(HTML(paste0("First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
                               tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
-                              tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), ")."))),
+                              tags$li(HTML(
+                                  paste0(
+                                      "Finally, select the metric of interest: either the raw unaggregated data, or an aggregation (daily average or daily max concentration). All selections are measured in µg/m",
+                                      tags$sup("3"),
+                                      ")."
+                                  )
+                              )),
                           ),
-                          "Making these selections will produce a dotplot visualising the options selected, as well as a map underneath showing where each of these stations is located.",
+                          "Making these selections will produce a plot visualising the options selected, as well as a map underneath showing where each of these stations is located. Pollution thresholds are (where applicable) denoted by a horizontal line – more information on these thresholds can be found on the", actionLink("link_to_home", "introduction")," page.",
                           br(), br(),
                           HTML(paste0("<b>NOTE</b>", ": Data is not available for every single pollutant at every single station on every single date. This means that each pollutant will produce a different list of stations to choose from.")),
                           br(), br(),
                           "To download your data selection as a CSV file, use the
-                  'Download data' button under the drop down boxes.",
-                          br(),br(),
-                          "For technical information, please see the",
-                          actionLink(
-                              "link_to_home", "introduction"
-                          ), " page."
+                  'Download data' button under the drop down boxes."
                       ))%>%
             bs_append(title = tags$u("Table functions"),
                       content = p(HTML("To view
@@ -429,7 +430,7 @@ tabsetPanel(
                 pickerInput(
                     inputId = "Category_yearly",
                     label = "Metric",
-                    choices = categories,
+                    choices = categories_combined,
                     multiple = TRUE,
                     selected = NULL,
                     options = list(
@@ -518,7 +519,6 @@ tabsetPanel(
                               tags$li(HTML(paste0("First select a Pollutant (1 selection max). Options include: Fine particulates (PM2.5); Particulates (PM10); Sulfur dioxide (SO", tags$sub("2"), "); Nitrogen dioxide (NO", tags$sub("2"),")."))),
                               tags$li("This selection will then produce a list of stations, arranged alphabetically, which have recorded data for this particular pollutant (3 selections max)."),
                               tags$li(HTML(paste0("Finally, select the metric of interest: Daily average or daily max concentration (measured in µg/m", tags$sup("3"), ")."))),
-                              
                           ),
                           "Making these selections will produce a dotplot visualising the options selected, as well as a map underneath showing where each of these stations is located.",
                           br(), br(),

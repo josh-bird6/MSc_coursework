@@ -30,13 +30,11 @@ datasets <- list.files('Data') %>%
   slice(-1:-2) %>% 
   mutate(filepath = paste0("Data/",.))
 
+#one for relative paths (to be used when reading in raw data dynamically)
 datasets_wd <- list.files(here::here('Data')) %>% 
   data.frame() %>% 
   slice(-1:-2) %>% 
   mutate(filepath = paste0(here::here("Data",.)))
-
-
-source(here::here('StatisticalcomputingProject_Code/Setupscript.R'))
 
 #concatenating all datsets into a base dataset  
 basedata <- datasets %>% 

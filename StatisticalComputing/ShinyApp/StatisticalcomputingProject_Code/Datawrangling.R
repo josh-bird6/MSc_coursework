@@ -46,7 +46,7 @@ promptmessage <- function() {
     annotate("text",
              x = 5,
              5,
-             label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above \n\n(Note that the chart may take some time to \nrender due to the size of the underlying dataset)",
+             label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above \n\n(Note that the 'Raw data' selection may take some time to \nrender due to the size of the underlying dataset)",
              size = 11)
   
 }
@@ -71,7 +71,10 @@ Tab2_Dataset <- basedata_final %>%
   summarise(`Daily average` = mean(Concentration),
             `Daily max` = max(Concentration)) %>% 
   pivot_longer(4:5, names_to = "category", values_to="total") %>% 
-  mutate(total = round(total, 1))
+  mutate(total = round(total, 1),
+         `Threshold exceeded` = case_when(AirPollutant == "PM10" & category == "Daily average" & total >49 ~ "Yes",
+                                          AirPollutant == "PM10" & category == "Daily average" & total <49 ~ "No",
+                                          T~"Not applicable"))
 
 ##################################
 ##Creating dataset for third tab##
@@ -102,8 +105,6 @@ Tab3_Dataset$`Date` <- lubridate::myd(paste(Tab3_Dataset$Month, 2000, Tab3_Datas
 Tab4_Dataset_wrangle <- basedata_final
 
 Tab4_Dataset_wrangle$dayofweek <- lubridate::wday(Tab4_Dataset_wrangle$Date, label = T, abbr = F)
-
-
 
 ##Creating two datasets, one for day of week..........
 Tab4_Dataset_dayofweek <- Tab4_Dataset_wrangle %>% 
@@ -162,17 +163,13 @@ pollutant_name <- unique(basedata_final$AirPollutant)
 #Metrics
 categories <- unique(Tab2_Dataset$category)
 
-# categories <- c("Daily average", "Daily max", "Raw data")
-
 categories_raw <- "Raw data"
 
 categories_combined <- c(categories, categories_raw)
 
-
-
-
-
 categories_hourly <- unique(Tab4_Dataset$category)
+
+
 
 ###Creating station options for individual pollutants, as some stations don't record everything - in other words, users can only select one pollutant at a time
 

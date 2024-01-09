@@ -57,27 +57,6 @@ shinyServer(function(input, output, session)
         )
     })
     
-    
-    ######################################################################################
-
-    tab2_dataoutput_test <- reactive({
-        tab2_raw <- datasets_wd %>%
-            mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
-            left_join(locations, by = "AirQualityStationEoICode") %>%
-            filter(str_detect(filepath, input$Pollutant),
-                   StationName %in% input$Station_Name) %>%
-            rowwise() %>%
-            do(., read_csv(file = .$filepath)) %>%
-            mutate(category = "Raw data",
-                   Date = lubridate::make_date(Year,Month,Day),
-                   total = Concentration) %>%
-            left_join(locations, by = "AirQualityStationEoICode")
-
-    })
-
-    
-    
-    
     ######################################################################################
     
     #Plot graph based on the user input.
@@ -103,7 +82,7 @@ shinyServer(function(input, output, session)
                       total = round(Concentration,1)
                   ) %>%
                   left_join(locations, by = "AirQualityStationEoICode") %>%
-                  select(Date, StationName, AirPollutant, category, total, Hour) %>%
+                  select(Date, Hour, StationName, AirPollutant, category, total) %>%
                   unique() %>% 
                   filter(
                       StationName %in% input$Station_Name
@@ -161,7 +140,7 @@ shinyServer(function(input, output, session)
                 scale_y_continuous(limits = c(0,max(tab2_dataoutput()$total))) +
                 scale_x_date(date_breaks = "3 months", date_labels = "%b-%Y")
             
-            
+            #Adding horizontal line denoting threshold dependent on user selection
             if (input$Category == "Daily average"
                 & input$Pollutant == "SO2")
                 
@@ -191,7 +170,7 @@ shinyServer(function(input, output, session)
             scale_y_continuous(limits = c(0,max(tab2_dataoutput()$total))) +
             scale_x_date(date_breaks = "3 months", date_labels = "%b-%Y")
 
-           #Adding horizontal line dependent on user selection
+           #Adding horizontal line denoting threshold dependent on user selection
            if (input$Category == "Daily average"
                & input$Pollutant == "PM10")
            {
@@ -325,11 +304,49 @@ shinyServer(function(input, output, session)
     #First we create a subset based on user input
 
     tab3_dataoutput <- reactive({
+      
+      #If user selects Raw data
+      if (input$Category_yearly ==
+          "Raw data")
+        
+      {
+        datasets_wd %>%
+          mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          filter(str_detect(filepath, input$Pollutant_yearly),
+                 StationName %in% input$Station_Name_yearly) %>%
+          rowwise() %>%
+          do(., read_csv(file = .$filepath)) %>%
+          mutate(
+            category = "Raw data",
+            Year2 = 2000,
+            Date = lubridate::make_date(Year2, Month, Day),
+            `Date (actual)` = lubridate::make_date(Year, Month, Day),
+            total = round(Concentration,1),
+            Month2 = month.abb[as.numeric(Month)],
+            MonthDay = paste0(Month2," ",Day)
+            ) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          select(MonthDay, Date, `Date (actual)`, Hour, StationName, AirPollutant, category, total) %>%
+          unique() %>% 
+          filter(
+            StationName %in% input$Station_Name_yearly
+            & AirPollutant %in% input$Pollutant_yearly
+            & categories_raw %in% input$Category_yearly,
+            !is.na(total)
+          )
+      }
+      
+      #If user selects an average
+      
+      else{
         Tab3_Dataset %>%
-            filter(StationName %in% input$Station_Name_yearly
-                   & AirPollutant %in% input$Pollutant_yearly 
-                   & categories %in% input$Category_yearly
-            )
+          filter(
+            StationName %in% input$Station_Name_yearly
+            & AirPollutant %in% input$Pollutant_yearly
+            & categories %in% input$Category_yearly
+          )
+      }
     })
 
     #############
@@ -340,50 +357,60 @@ shinyServer(function(input, output, session)
 
         ## Default output is message in a blank ggplot object telling users to make proper selections
 
-        if (is.null(input$Station_Name_yearly) |
-            is.null(input$Pollutant_yearly) |
-            is.null(input$Category_yearly)
-        )
-
-        {
-            promptmessage()
-        }
+      if (is.null(input$Station_Name_yearly) |
+          is.null(input$Pollutant_yearly) |
+          is.null(input$Category_yearly))
+        
+      {
+        promptmessage()
+      }
 
         # If conditions are met, chart is plotted
+      
+      ##FIRST IF USER SELECTS RAW DATA
+      else if (input$Category_yearly ==
+               "Raw data")
+      {
+        vis_tab3 <- ggplot(tab3_dataoutput(), aes(x=`Date`, y=total, group=StationName, color=StationName))+
+          geom_point(aes(group = StationName, color = StationName))+
+          labs(title = paste0(input$Pollutant_yearly, " pollution (raw data) by day of the year, 2013-2018"),
+               y= paste0(input$Pollutant_yearly, " concentration (µg/m3)"),
+               x="Month",
+               caption = "Source: European Environmental Agency",
+               color = "Station Name") +
+          plottheme +
+          scale_y_continuous(limits = c(0,max(tab3_dataoutput()$total))) +
+          scale_x_date(date_breaks = "month", date_labels = "%B")
+
+          vis_tab3
+      }
+      
 
         else {
 
            vis_tab3 <-  ggplot(tab3_dataoutput(), aes(x=`Date`, y = total, group = StationName, color = StationName))+
                 geom_point(aes(group = StationName, color = StationName))+
                 labs(title = paste0(input$Pollutant_yearly, " ",input$Category_yearly, " by month, 2013-2018"),
-                     y= paste0(input$Category_yearly, " ", input$Pollutant_yearly, " concentration (µg/m3)"),
+                     y= paste0(input$Pollutant_yearly, " concentration (µg/m3)"),
                      x="Month",
                      caption = "Source: European Environmental Agency",
                      color = "Station Name") +
                 plottheme +
-                theme(axis.text.x = element_text(angle = 0, hjust=.5, vjust=.5))+
                 scale_y_continuous(limits = c(0,max(tab3_dataoutput()$total))) +
                 scale_x_date(date_breaks = "month", date_labels = "%B")
            
            #Adding horizontal lines for daily limits
            
-         if(input$Category_yearly == "Daily average" 
-              & input$Pollutant_yearly == "PM10")
+           if (input$Category_yearly == "Daily average"
+               & input$Pollutant_yearly == "PM10")
            {
-               vis_tab3 + geom_hline(yintercept = 50, linetype = "dashed") +
-                 labs(subtitle = "Dashed line corresponds to daily average limit for PM10 (see Introduction page for more information)")
-               
-         }
-           
-           # else if(input$Category_yearly == "Daily average"
-           #         & input$Pollutant_yearly == "SO2")
-           # {
-           #     vis_tab3 + geom_hline(yintercept = 125, linetype = "dashed") +
-           #         labs(subtitle = "Dashed line corresponds to daily average limit for SO2 (see Introduction page for more information")
-           # }
-           
+             vis_tab3 + geom_hline(yintercept = 50, linetype = "dashed") +
+               labs(subtitle = "Dashed line corresponds to daily average limit for PM10 (see Introduction page for more information)")
+             
+           }
+
            else {
-               vis_tab3
+             vis_tab3
            }
 
         }
@@ -395,29 +422,29 @@ shinyServer(function(input, output, session)
     ############
     
     map_df_tab3 <- reactive({
-        map_basedata %>%
-            filter(StationName %in% input$Station_Name_yearly
-                   & AirPollutant %in% input$Pollutant_yearly)
+      map_basedata %>%
+        filter(StationName %in% input$Station_Name_yearly
+               & AirPollutant %in% input$Pollutant_yearly)
     })
     
     
     output$map_tab3 <- renderLeaflet({
-        if (is.null(input$Station_Name_yearly) |
-            is.null(input$Pollutant_yearly) |
-            is.null(input$Category_yearly))
-            
-        {
-            NULL
-        }
+      if (is.null(input$Station_Name_yearly) |
+          is.null(input$Pollutant_yearly) |
+          is.null(input$Category_yearly))
         
-        else {
-            leaflet() %>%
-                addTiles() %>%
-                addMarkers(data = map_df_tab3(),
-                           label = input$Station_Name_yearly)
-            
-        }
+      {
+        NULL
+      }
+      
+      else {
+        leaflet() %>%
+          addTiles() %>%
+          addMarkers(data = map_df_tab3(),
+                     label = input$Station_Name_yearly)
         
+      }
+      
     })
     
     ##############
@@ -425,11 +452,24 @@ shinyServer(function(input, output, session)
     ##############
 
     output$yearlydata_table <- renderDataTable({
+      
+      #There is an issue with pivoting when there are multiple selections in a single day, so raw data will be presented in long format
+      if (input$Category_yearly ==
+          "Raw data")
+        
+      {
         tab3_dataoutput() %>% 
-            select(-`Date`) %>%
-            pivot_wider(names_from = StationName, values_from = total)
-
+          select(`Date (actual)`, MonthDay, Hour, StationName, AirPollutant, category, total)
+      }
+      
+      
+      else {
+        tab3_dataoutput() %>%
+          select(-`Date`) %>%
+          pivot_wider(names_from = StationName, values_from = total)
+      }
     })
+
 
     #################
     #Download button#
