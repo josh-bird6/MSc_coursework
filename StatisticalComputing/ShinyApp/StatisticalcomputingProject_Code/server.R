@@ -9,16 +9,35 @@
 
 shinyServer(function(input, output, session)
     {
-    observeEvent(
-        input$link_to_home,
-        {
-            updateTabsetPanel(session, "Panels",
-                              selected = "Introduction")
-        })
-    
-    ##############################
-    ##Aggregated time series tab##
-    ##############################
+  
+  #Adding links on the data tabs back to the Introduction tab
+  observeEvent(input$link_to_home,
+               {
+                 updateTabsetPanel(session, "Panels",
+                                   selected = "Introduction")
+               })
+  
+  observeEvent(input$link_to_home2,
+               {
+                 updateTabsetPanel(session, "Panels",
+                                   selected = "Introduction")
+               })
+  
+  observeEvent(input$link_to_home3,
+               {
+                 updateTabsetPanel(session, "Panels",
+                                   selected = "Introduction")
+               })
+  
+  observeEvent(input$link_to_home4,
+               {
+                 updateTabsetPanel(session, "Panels",
+                                   selected = "Introduction")
+               })
+  
+    ##########################
+    ##TAB 2: Time series tab##
+    ##########################
 
     #We need to include the input for station and pollutant type in the server section rather than the UI section because station is dependent on pollutant input
     
@@ -130,7 +149,7 @@ shinyServer(function(input, output, session)
             
             vis_tab2 <- ggplot(tab2_dataoutput(), aes(x=`Date`, y=total, group=StationName, color=StationName))+
                 geom_point(aes(group = StationName, color = StationName))+
-                labs(title = paste0(input$Pollutant, " pollution (raw data)"),
+                labs(title = paste0(input$Pollutant, " concentration over the time series (raw data)"),
                      y= paste0(input$Pollutant, " concentration (µg/m3)"),
                      x="Date",
                      caption = "Source: European Environmental Agency",
@@ -160,7 +179,7 @@ shinyServer(function(input, output, session)
 
            vis_tab2 <- ggplot(tab2_dataoutput(), aes(x=`Date`, y = total, group = StationName, color = StationName))+
             geom_line(aes(group = StationName, color = StationName)) +
-            labs(title = paste0(input$Pollutant, " ",input$Category),
+            labs(title = paste0(input$Category, " ", input$Pollutant, " concentration over the time series"),
                  y= paste0(input$Pollutant, " concentration (µg/m3)"),
                  x="Date",
                  caption = "Source: European Environmental Agency",
@@ -224,7 +243,7 @@ shinyServer(function(input, output, session)
         if (input$Category ==
             "Raw data")
             
-            #There is an issue with pivoting when there are multiple selections in a single day, so raw data will be presented in long format
+            #There is a formatting issue with pivoting when there are multiple selections in a single day, so raw data will be presented in long format
         {
             tab2_dataoutput()
         }
@@ -246,9 +265,9 @@ shinyServer(function(input, output, session)
                 }
             )
     
-    #####################################
-    ##End of aggregated time series tab##
-    #####################################
+    ###############################
+    ##End of time series data tab##
+    ###############################
     
     ###################################
     ###################################
@@ -259,9 +278,9 @@ shinyServer(function(input, output, session)
     ###################################
     ###################################
     
-    ##############################
-    ##Yearly time series tab######
-    ##############################
+    ########################################
+    ##TAB 3: Daily data by day of year tab##
+    ########################################
 
     #We need to include the input for station and pollutant type in the server section rather than the UI section because station is dependent on pollutant input
 
@@ -373,7 +392,7 @@ shinyServer(function(input, output, session)
       {
         vis_tab3 <- ggplot(tab3_dataoutput(), aes(x=`Date`, y=total, group=StationName, color=StationName))+
           geom_point(aes(group = StationName, color = StationName))+
-          labs(title = paste0(input$Pollutant_yearly, " pollution (raw data) by day of the year, 2013-2018"),
+          labs(title = paste0(input$Pollutant_yearly, " concentration by day of the year (raw data), 2013-2018"),
                y= paste0(input$Pollutant_yearly, " concentration (µg/m3)"),
                x="Month",
                caption = "Source: European Environmental Agency",
@@ -390,7 +409,7 @@ shinyServer(function(input, output, session)
 
            vis_tab3 <-  ggplot(tab3_dataoutput(), aes(x=`Date`, y = total, group = StationName, color = StationName))+
                 geom_point(aes(group = StationName, color = StationName))+
-                labs(title = paste0(input$Pollutant_yearly, " ",input$Category_yearly, " by month, 2013-2018"),
+                labs(title = paste0(input$Category_yearly, " ", input$Pollutant_yearly, " concentration by day of the year, 2013-2018"),
                      y= paste0(input$Pollutant_yearly, " concentration (µg/m3)"),
                      x="Month",
                      caption = "Source: European Environmental Agency",
@@ -459,13 +478,13 @@ shinyServer(function(input, output, session)
         
       {
         tab3_dataoutput() %>% 
-          select(`Date (actual)`, MonthDay, Hour, StationName, AirPollutant, category, total)
+          select(`Date (actual)`, MonthDay, Hour, StationName, AirPollutant, category, total, -`Date`)
       }
       
       
       else {
         tab3_dataoutput() %>%
-          select(-`Date`) %>%
+          select(-`Date`) %>% 
           pivot_wider(names_from = StationName, values_from = total)
       }
     })
@@ -478,13 +497,15 @@ shinyServer(function(input, output, session)
     output$download_yearly <- downloadHandler(
         filename = "pollutant-daily-subset.csv",
         content = function(file) {
-            write.csv(tab3_dataoutput(), file, row.names=FALSE)
+          tab3_dataoutput() %>% 
+            select(-`Date`) %>% 
+            write.csv(file, row.names=FALSE)
         }
     )
 
-    #################################
-    ##End of yearly time series tab##
-    #################################
+    ########################################
+    ##End of daily data by day of year tab##
+    ########################################
     
     ###################################
     ###################################
@@ -495,9 +516,9 @@ shinyServer(function(input, output, session)
     ###################################
     ###################################
     
-    # ##############################
-    # ##Daily time series tab#######
-    # ##############################
+    #############################################
+    ##TAB 4: Daily data by day/hour of week tab##
+    #############################################
     
     #We need to include the input for station and pollutant type in the server section rather than the UI section because station is dependent on pollutant input
     
@@ -539,6 +560,79 @@ shinyServer(function(input, output, session)
     #Plot graph based on the user input.
     #This one is slightly different because we need to combine two different types of data - aggregated by day and hour of week
     
+    #First reactive call is if someone selects raw data for either hour or day of the week
+
+    tab5_dataoutput_RAW <- reactive({
+
+      if (input$Category_daily ==
+          "Raw data (daily)")
+
+      {
+        datasets_wd %>%
+          mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          filter(str_detect(filepath, input$Pollutant_daily),
+                 StationName %in% input$Station_Name_daily) %>%
+          rowwise() %>%
+          do(., read_csv(file = .$filepath)) %>%
+          mutate(category = "Raw data (daily)",
+                 total = round(Concentration,1),
+                 Date = lubridate::make_date(Year, Month, Day)) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          left_join(tojoin, by = "Date") %>%
+          mutate(classification = dayofweek) %>%
+          select(Date, StationName, AirPollutant, category, total, classification) %>%
+          filter(
+            StationName %in% input$Station_Name_daily
+            & AirPollutant %in% input$Pollutant_daily,
+            !is.na(total)
+          )
+
+      }
+
+     else if (input$Category_daily ==
+          "Raw data (hourly)")
+
+      {
+
+        datasets_wd %>%
+          mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          filter(str_detect(filepath, input$Pollutant_daily),
+                 StationName %in% input$Station_Name_daily) %>%
+          rowwise() %>%
+          do(., read_csv(file = .$filepath)) %>%
+          mutate(category = "Raw data (hourly)",
+                 total = round(Concentration,1),
+                 Date = lubridate::make_date(Year, Month, Day)) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          left_join(tojoin, by = "Date") %>%
+          mutate(classification = case_when(dayofweek == "Sunday"~Hour,
+                                            dayofweek == "Monday"~(Hour+24),
+                                            dayofweek == "Tuesday"~(Hour+(24*2)),
+                                            dayofweek == "Wednesday"~(Hour+(24*3)),
+                                            dayofweek == "Thursday"~(Hour+(24*4)),
+                                            dayofweek == "Friday"~(Hour+(24*5)),
+                                            dayofweek == "Saturday"~(Hour+(24*6)),
+                                            T~(Hour+(24*7))),
+                 `Threshold exceeded` = case_when(AirPollutant == "SO2" & total >=350 ~ "Yes",
+                                                  AirPollutant == "SO2" & total <350 ~ "No",
+                                                  AirPollutant == "NO2" & total >=200 ~ "Yes",
+                                                  AirPollutant == "NO2" & total <200 ~ "No",
+                                                  T~"Not applicable")) %>%
+          select(Date, StationName, AirPollutant, category, total, classification, `Threshold exceeded`) %>%
+          filter(
+            StationName %in% input$Station_Name_daily
+            & AirPollutant %in% input$Pollutant_daily,
+            !is.na(total)
+          )
+
+      }
+
+    })
+    
+    #If someone selects aggregated data, first by hour of week
+
     tab5_dataoutput_HOURLY <- reactive({
         Tab4_Dataset_hourofweek %>%
             filter(
@@ -547,6 +641,8 @@ shinyServer(function(input, output, session)
                 & categories_hourly %in% input$Category_daily
             )
     })
+    
+    #Then day of the week
     
     tab5_dataoutput_DAILY <- reactive({
         Tab4_Dataset_dayofweek %>%
@@ -578,8 +674,51 @@ shinyServer(function(input, output, session)
         }
         
         # If conditions are met, chart is plotted
-        # First creating a plot for if someone selects hourly data
-    
+      
+      
+        # First creating a plot for if someone selects hourly RAW data
+      
+      else if (input$Category_daily ==
+               "Raw data (hourly)")
+        
+      {
+        
+        vis_tab4 <- ggplot(tab5_dataoutput_RAW(), aes(x = classification, y = total, group = StationName, color = StationName))+
+          geom_point(aes(group = StationName, color = StationName)) +
+          labs(title = paste0(input$Pollutant_daily," concentration by hour of week (raw data) 2013-2018"),
+               y= paste0(input$Pollutant_daily, " concentration (µg/m3)"),
+               x="Hour of week",
+               caption = "Source: European Environmental Agency",
+               color = "Station Name") +
+          plottheme +
+          scale_y_continuous(limits = c(0,max(tab5_dataoutput_RAW()$total)))+
+          scale_x_continuous(breaks = seq(0,170,5))
+        
+        vis_tab4
+      }
+      
+      # If someone selects daily RAW data
+      
+      else if (input$Category_daily ==
+               "Raw data (daily)")
+
+      {
+        vis_tab4 <- ggplot(tab5_dataoutput_RAW(), aes(x = classification, y = total, group = StationName, color = StationName))+
+          geom_jitter(aes(group = StationName, color = StationName)) +
+          labs(title = paste0(input$Pollutant_daily," concentration by day of week of the week (raw data) 2013-2018"),
+               y= paste0(input$Pollutant_daily, " concentration (µg/m3)"),
+               x="Day of week",
+               caption = "Source: European Environmental Agency",
+               color = "Station Name") +
+          plottheme +
+          scale_y_continuous(limits = c(0,max(tab5_dataoutput_RAW()$total)))
+        
+        vis_tab4
+
+      }
+      
+      #If someone selects hourly aggregated data
+      
         else if (input$Category_daily ==
                 "Hourly average" |
                 input$Category_daily ==
@@ -588,19 +727,18 @@ shinyServer(function(input, output, session)
             )
 
          {
-            vis_tab5 <-  ggplot(tab5_dataoutput_HOURLY(), aes(x=classification, y = total, group = StationName, color = StationName))+
+            vis_tab4 <-  ggplot(tab5_dataoutput_HOURLY(), aes(x=classification, y = total, group = StationName, color = StationName))+
                 geom_point(aes(group = StationName, color = StationName))+
-                labs(title = paste0(input$Pollutant_daily, " ",input$Category_daily, " by hour of week 2013-2018"),
-                     y= paste0(input$Category_daily, " ", input$Pollutant_daily, " concentration (µg/m3)"),
+                labs(title = paste0(input$Category_daily, " ", input$Pollutant_daily, " concentration by hour of week 2013-2018"),
+                     y= paste0(input$Pollutant_daily, " concentration (µg/m3)"),
                      x="Hour of week",
                      caption = "Source: European Environmental Agency",
                      color = "Station Name") +
                 plottheme +
-                theme(axis.text.x = element_text(angle = 0, hjust=.5, vjust=.5)) +
                 scale_y_continuous(limits = c(0,max(tab5_dataoutput_HOURLY()$total)))+
                 scale_x_continuous(breaks = seq(0,170,5))
             
-            vis_tab5
+            vis_tab4
             
         }
         
@@ -608,10 +746,10 @@ shinyServer(function(input, output, session)
         
         else {
             
-            vis_tab5 <-  ggplot(tab5_dataoutput_DAILY(), aes(x=classification, y = total, group = StationName, color = StationName))+
+            vis_tab4 <-  ggplot(tab5_dataoutput_DAILY(), aes(x=classification, y = total, group = StationName, color = StationName))+
                 geom_point(aes(group = StationName, color = StationName))+
-                labs(title = paste0(input$Pollutant_daily, " ",input$Category_daily, " by day of the week, 2013-2018"),
-                     y= paste0(input$Category_daily, " ", input$Pollutant_daily, " concentration (µg/m3)"),
+                labs(title = paste0(input$Category_daily, " ", input$Pollutant_daily, " concentration by day of the week, 2013-2018"),
+                     y= paste0(input$Pollutant_daily, " concentration (µg/m3)"),
                      x="Day of week",
                      caption = "Source: European Environmental Agency",
                      color = "Station Name") +
@@ -619,7 +757,7 @@ shinyServer(function(input, output, session)
                 theme(axis.text.x = element_text(angle = 0, hjust=.5, vjust=.5)) +
                 scale_y_continuous(limits = c(0,max(tab5_dataoutput_DAILY()$total))) 
             
-            vis_tab5
+            vis_tab4
             
             
             
@@ -634,29 +772,31 @@ shinyServer(function(input, output, session)
     ############
     
     map_df_tab4 <- reactive({
-        map_basedata %>%
-            filter(StationName %in% input$Station_Name_daily
-                   & AirPollutant %in% input$Pollutant_daily)
+      map_basedata %>%
+        filter(
+          StationName %in% input$Station_Name_daily
+          & AirPollutant %in% input$Pollutant_daily
+        )
     })
     
     
     output$map_tab4 <- renderLeaflet({
-        if (is.null(input$Station_Name_daily) |
-            is.null(input$Pollutant_daily) |
-            is.null(input$Category_daily))
-            
-        {
-            NULL
-        }
+      if (is.null(input$Station_Name_daily) |
+          is.null(input$Pollutant_daily) |
+          is.null(input$Category_daily))
         
-        else {
-            leaflet() %>%
-                addTiles() %>%
-                addMarkers(data = map_df_tab4(),
-                           label = input$Station_Name_daily)
-            
-        }
+      {
+        NULL
+      }
+      
+      else {
+        leaflet() %>%
+          addTiles() %>%
+          addMarkers(data = map_df_tab4(),
+                     label = input$Station_Name_daily)
         
+      }
+      
     })
     
     ##############
@@ -666,27 +806,45 @@ shinyServer(function(input, output, session)
     ##Have to create two tables
     
     output$dailydata_table <- renderDataTable({
-        if (input$Category_daily ==
-            "Hourly average" |
-            input$Category_daily ==
-            "Hourly max")
-            
-        {
-            tab5_dataoutput_HOURLY() %>%
-                mutate(`Hour of week` = classification) %>%
-                select(`Hour of week`, everything(), -classification) %>% 
-                pivot_wider(names_from = StationName, values_from = total) 
-                
-            
-        }
+      if (input$Category_daily ==
+          "Raw data (hourly)")
         
-        else {
-            tab5_dataoutput_DAILY() %>%
-                mutate(`Day of week` = classification) %>%
-                select(`Day of week`, everything(), -classification) %>% 
-                pivot_wider(names_from = StationName, values_from = total)
-            
-        }
+      {
+        tab5_dataoutput_RAW() %>%
+          mutate(`Hour of week` = classification) %>%
+          select(`Hour of week`, everything(),-classification)
+      }
+      
+      else if (input$Category_daily ==
+               "Raw data (daily)")
+        
+      {
+        tab5_dataoutput_RAW() %>%
+          mutate(`Day of week` = classification) %>%
+          select(`Day of week`, everything(),-classification)
+      }
+      
+      else if (input$Category_daily ==
+               "Hourly average" |
+               input$Category_daily ==
+               "Hourly max")
+        
+      {
+        tab5_dataoutput_HOURLY() %>%
+          mutate(`Hour of week` = classification) %>%
+          select(`Hour of week`, everything(),-classification) %>%
+          pivot_wider(names_from = StationName, values_from = total)
+        
+        
+      }
+      
+      else {
+        tab5_dataoutput_DAILY() %>%
+          mutate(`Day of week` = classification) %>%
+          select(`Day of week`, everything(),-classification) %>%
+          pivot_wider(names_from = StationName, values_from = total)
+        
+      }
     })
 
     #################
@@ -696,25 +854,56 @@ shinyServer(function(input, output, session)
     ##Have to create two download buttons
     
     output$download_daily <- downloadHandler(
-        filename = "pollutant-daily-subset.csv",
-        content = function(file) {
-            if (input$Category_daily ==
-                "Hourly average" |
-                input$Category_daily ==
-                "Hourly max")
-            {
-                write.csv(tab5_dataoutput_HOURLY(), file, row.names = FALSE)
-            }
-            
-            else {
-                write.csv(tab5_dataoutput_DAILY(), file, row.names = FALSE)
-            }
+      filename = "pollutant-daily-dayhour-subset.csv",
+      content = function(file) {
+        
+        if (input$Category_daily ==
+            "Raw data (daily)" )
+          
+        {
+          tab5_dataoutput_RAW() %>% 
+            mutate(`Day of week` = classification) %>%
+            select(`Day of week`, everything(),-classification) %>% 
+            write.csv(file, row.names = FALSE) 
+          
         }
+        
+        
+         else if (input$Category_daily ==
+          "Raw data (hourly)")
+         {
+           tab5_dataoutput_RAW() %>% 
+             mutate(`Hour of week` = classification) %>%
+             select(`Hour of week`, everything(),-classification) %>% 
+             write.csv(file, row.names = FALSE) 
+         }
+          
+          
+        else if (input$Category_daily ==
+                 "Hourly average" |
+                 input$Category_daily ==
+                 "Hourly max")
+        {
+          
+          tab5_dataoutput_HOURLY() %>%
+            mutate(`Hour of week` = classification) %>%
+            select(`Hour of week`, everything(),-classification) %>% 
+            write.csv(file, row.names = FALSE)
+          
+        }
+        
+        else {
+          tab5_dataoutput_DAILY() %>%
+            mutate(`Day of week` = classification) %>%
+            select(`Day of week`, everything(),-classification) %>% 
+            write.csv(file, row.names = FALSE)
+        }
+      }
     )
     
-    #################################
-    ##End of daily time series tab###
-    #################################
+    ##############################################
+    ##End of daily data by day/hour of week tab###
+    ##############################################
     
     ###################################
     ###################################
@@ -725,9 +914,9 @@ shinyServer(function(input, output, session)
     ###################################
     ###################################
     
-    # ##############################
-    # ##Hourly time series tab######
-    # ##############################
+    ##########################
+    ##TAB 5: Hourly data tab##
+    ##########################
 
     #We need to include the input for station and pollutant type in the server section rather than the UI section because station is dependent on pollutant input
 
@@ -770,11 +959,49 @@ shinyServer(function(input, output, session)
     #First we create a subset based on user input
 
     tab5_dataoutput <- reactive({
+      
+      if (input$Category_hourly ==
+          "Raw data")
+        
+      {
+        datasets_wd %>%
+          mutate(AirQualityStationEoICode = str_sub(., 1, 7)) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          filter(
+            str_detect(filepath, input$Pollutant_hourly),
+            StationName %in% input$Station_Name_hourly
+          ) %>%
+          rowwise() %>%
+          do(., read_csv(file = .$filepath)) %>%
+          mutate(
+            category = "Raw data",
+            Date = lubridate::make_date(Year, Month, Day),
+            total = round(Concentration, 1),
+            `Threshold exceeded` = case_when(AirPollutant == "SO2" & total >=350 ~ "Yes",
+                                             AirPollutant == "SO2" & total <350 ~ "No",
+                                             AirPollutant == "NO2" & total >=200 ~ "Yes",
+                                             AirPollutant == "NO2" & total <200 ~ "No",
+                                             T~"Not applicable")
+          ) %>%
+          left_join(locations, by = "AirQualityStationEoICode") %>%
+          select(Date, Hour, StationName, AirPollutant, category, total, `Threshold exceeded`) %>%
+          unique() %>%
+          filter(
+            StationName %in% input$Station_Name_hourly
+            & AirPollutant %in% input$Pollutant_hourly
+            & categories_raw %in% input$Category_hourly,
+            !is.na(total)
+          )
+      }
+      
+      else {
         Tab4_Dataset %>%
-            filter(StationName %in% input$Station_Name_hourly
-                   & AirPollutant %in% input$Pollutant_hourly
-                   & categories_hourly %in% input$Category_hourly
-            )
+          filter(
+            StationName %in% input$Station_Name_hourly
+            & AirPollutant %in% input$Pollutant_hourly
+            & categories_hourly %in% input$Category_hourly
+          )
+      }
     })
 
     #############
@@ -796,12 +1023,34 @@ shinyServer(function(input, output, session)
 
         # If conditions are met, chart is plotted
 
+      
+      else if (input$Category_hourly ==
+               "Raw data") 
+      {
+      
+        vis_tab5 <-  ggplot(tab5_dataoutput(), aes(x=Hour, y = total, group = StationName, color = StationName))+
+          geom_jitter(aes(group = StationName, color = StationName))+
+          labs(title = paste0(input$Pollutant_hourly, " concentration by hour of the day (raw data), 2013-2018"),
+               y= paste0(input$Pollutant_hourly, " concentration (µg/m3)"),
+               x="Time of day",
+               caption = "Source: European Environmental Agency",
+               color = "Station Name") +
+          plottheme +
+          theme(axis.text.x = element_text(angle = 0, hjust=.5, vjust=.5)) +
+          scale_y_continuous(limits = c(0,max(tab5_dataoutput()$total))) +
+          scale_x_continuous(breaks = seq(0,23,1))
+        
+        vis_tab5
+        
+        }
+      
+      
         else {
 
-            vis_tab4 <-  ggplot(tab5_dataoutput(), aes(x=Hour, y = total, group = StationName, color = StationName))+
+            vis_tab5 <-  ggplot(tab5_dataoutput(), aes(x=Hour, y = total, group = StationName, color = StationName))+
                 geom_point(aes(group = StationName, color = StationName))+
-                labs(title = paste0(input$Pollutant_hourly, " ",input$Category_hourly, " by day of the week, 2013-2018"),
-                     y= paste0(input$Category_hourly, " ", input$Pollutant_hourly, " concentration (µg/m3)"),
+                labs(title = paste0(input$Category_hourly, " ", input$Pollutant_hourly, " concentration by hour of the day, 2013-2018"),
+                     y= paste0(input$Pollutant_hourly, " concentration (µg/m3)"),
                      x="Time of day",
                      caption = "Source: European Environmental Agency",
                      color = "Station Name") +
@@ -810,20 +1059,11 @@ shinyServer(function(input, output, session)
                 scale_y_continuous(limits = c(0,max(tab5_dataoutput()$total))) +
                 scale_x_continuous(breaks = seq(0,23,1))
             
-            vis_tab4
+            vis_tab5
 
             #Adding a line for daily limit
-# 
-#             if(input$Category_hourly == "Daily average"
-#                & input$Pollutant_hourly == "PM10")
-#             {
-#                 vis_tab4 + geom_hline(yintercept = 50, linetype = "dashed") +
-#                     labs(subtitle = "Dashed line corresponds to daily average limit for PM10 (see Introduction page for more information)")
-# 
-#             }
-#             else {
-#                 vis_tab4
-#             }
+
+
 
         }
 
@@ -863,10 +1103,21 @@ shinyServer(function(input, output, session)
     #Table output#
     ##############
 
-    output$hourlydata_table1 <- renderDataTable({
-        tab5_dataoutput() %>% 
-            pivot_wider(names_from = StationName, values_from = total)
-
+    output$hourlydata_table <- renderDataTable({
+      
+      if (input$Category_hourly ==
+          "Raw data")
+        
+        #There is an issue with pivoting when there are multiple selections in a single day, so raw data will be presented in long format
+      {
+        tab5_dataoutput()
+      }
+      
+      else {
+        tab5_dataoutput() %>%
+          pivot_wider(names_from = StationName, values_from = total)
+      }
+      
     })
 
     #################
@@ -880,8 +1131,8 @@ shinyServer(function(input, output, session)
         }
     )
 
-    #################################
-    ##End of hourly time series tab##
-    #################################
+    ##########################
+    ##End of hourly data tab##
+    ##########################
     
 })

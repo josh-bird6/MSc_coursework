@@ -46,7 +46,7 @@ promptmessage <- function() {
     annotate("text",
              x = 5,
              5,
-             label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above \n\n(Note that the 'Raw data' selection may take some time to \nrender due to the size of the underlying dataset)",
+             label = "Please select a pollutant and a station and a metric \nfrom the drop down menus above \n\n(Note that 'Raw data' selections may take some time to \nrender due to the size of the underlying dataset)",
              size = 11)
   
 }
@@ -72,8 +72,10 @@ Tab2_Dataset <- basedata_final %>%
             `Daily max` = max(Concentration)) %>% 
   pivot_longer(4:5, names_to = "category", values_to="total") %>% 
   mutate(total = round(total, 1),
-         `Threshold exceeded` = case_when(AirPollutant == "PM10" & category == "Daily average" & total >49 ~ "Yes",
-                                          AirPollutant == "PM10" & category == "Daily average" & total <49 ~ "No",
+         `Threshold exceeded` = case_when(AirPollutant == "PM10" & category == "Daily average" & total >=50 ~ "Yes",
+                                          AirPollutant == "PM10" & category == "Daily average" & total <50 ~ "No",
+                                          AirPollutant == "SO2" & category == "Daily average" & total >=125 ~"Yes",
+                                          AirPollutant == "SO2" & category == "Daily average" & total <125 ~"No",
                                           T~"Not applicable"))
 
 ##################################
@@ -94,7 +96,12 @@ Tab3_Dataset <- basedata_final %>%
             `Daily max` = max(`Daily max`)) %>% 
   pivot_longer(5:6, names_to = "category", values_to="total") %>% 
   mutate(total = round(total, 1),
-         Month = month.abb[as.numeric(Month)])
+         Month = month.abb[as.numeric(Month)],
+         `Threshold exceeded` = case_when(AirPollutant == "PM10" & category == "Daily average" & total >=50 ~ "Yes",
+                                          AirPollutant == "PM10" & category == "Daily average" & total <50 ~ "No",
+                                          AirPollutant == "SO2" & category == "Daily average" & total >=125 ~"Yes",
+                                          AirPollutant == "SO2" & category == "Daily average" & total <125 ~"No",
+                                          T~"Not applicable"))
 
 Tab3_Dataset$`Date` <- lubridate::myd(paste(Tab3_Dataset$Month, 2000, Tab3_Dataset$Day))
 
@@ -106,6 +113,10 @@ Tab4_Dataset_wrangle <- basedata_final
 
 Tab4_Dataset_wrangle$dayofweek <- lubridate::wday(Tab4_Dataset_wrangle$Date, label = T, abbr = F)
 
+tojoin <- Tab4_Dataset_wrangle %>% 
+  select(Date, dayofweek) %>% 
+  unique()
+
 ##Creating two datasets, one for day of week..........
 Tab4_Dataset_dayofweek <- Tab4_Dataset_wrangle %>% 
   select(dayofweek, StationName, AirPollutant, Concentration) %>%
@@ -114,7 +125,12 @@ Tab4_Dataset_dayofweek <- Tab4_Dataset_wrangle %>%
             `Daily max` = max(Concentration, na.rm = T)) %>% 
   pivot_longer(4:5, names_to = "category", values_to="total") %>% 
   mutate(total = round(total, 1),
-         classification = dayofweek) %>% 
+         classification = dayofweek, 
+         `Threshold exceeded` = case_when(AirPollutant == "PM10" & category == "Daily average" & total >=50 ~ "Yes",
+                                          AirPollutant == "PM10" & category == "Daily average" & total <50 ~ "No",
+                                          AirPollutant == "SO2" & category == "Daily average" & total >=125 ~"Yes",
+                                          AirPollutant == "SO2" & category == "Daily average" & total <125 ~"No",
+                                          T~"Not applicable")) %>% 
   ungroup() %>% 
   select(-dayofweek)
 
@@ -163,12 +179,20 @@ pollutant_name <- unique(basedata_final$AirPollutant)
 #Metrics
 categories <- unique(Tab2_Dataset$category)
 
-categories_raw <- "Raw data"
-
-categories_combined <- c(categories, categories_raw)
-
 categories_hourly <- unique(Tab4_Dataset$category)
 
+categories_raw <- "Raw data"
+
+categories_raw_combined <- c(paste0(categories_raw, " (hourly)"), paste0(categories_raw, " (daily)"))
+
+#combining metrics lists
+categories_combined <- c(categories, categories_raw)
+
+categories_combined_hourly <- c(categories_hourly, categories_raw)
+
+categories_tab5 <- c(categories, categories_hourly)
+
+categories_combined_tab5 <- c(categories_tab5, categories_raw_combined)
 
 
 ###Creating station options for individual pollutants, as some stations don't record everything - in other words, users can only select one pollutant at a time

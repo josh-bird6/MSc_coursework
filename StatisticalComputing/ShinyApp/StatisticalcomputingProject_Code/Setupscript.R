@@ -14,7 +14,6 @@ library(tidyverse)
 library(DT)
 library(shiny)
 library(shinyWidgets)
-library(shinymanager)
 library(shinyBS)
 library(bsplus)
 library(leaflet)
@@ -30,7 +29,7 @@ datasets <- list.files('Data') %>%
   slice(-1:-2) %>% 
   mutate(filepath = paste0("Data/",.))
 
-#one for relative paths (to be used when reading in raw data dynamically)
+#One for relative paths (to be used when reading in raw data dynamically)
 datasets_wd <- list.files(here::here('Data')) %>% 
   data.frame() %>% 
   slice(-1:-2) %>% 
