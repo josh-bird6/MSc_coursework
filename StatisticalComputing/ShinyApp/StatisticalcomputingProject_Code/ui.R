@@ -14,8 +14,12 @@
 ##First the data import and wrangling scripts
 #NOTE: THESE TAKE A WHILE SO JUST RUN FOR THE ONE TIME
 
-# source(here::here('StatisticalcomputingProject_Code/Setupscript.R'))
-# source(here::here('Statisticalcomputingproject_Code/Datawrangling.R'))
+source(here::here('StatisticalcomputingProject_Code/Setupscript.R'))
+source(here::here('Statisticalcomputingproject_Code/Datawrangling.R'))
+
+#deployment in shinyapps.io
+# source('Setupscript.R')
+# source('Datawrangling.R')
 
 #################
 ##Beginning of UI

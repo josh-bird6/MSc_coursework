@@ -1,0 +1,59 @@
+
+#                           CORRCI
+#                          ========
+
+#  AIM:-
+# ------
+
+#   The following macro calculates the population correlation between two
+#   variables. The columns x and y contain the values of each of the two
+#   variables in the sample observed. The constant p is the required confidence
+#   coefficient ( the default is 95% ).
+
+
+MACRO
+
+corrci x y;
+percent p.
+
+mconstant p, c, co, p1, nx, fr, f1, f2
+mcolumn x, y, a, b, x1, y1 lc uc pp  cor
+mmatrix m
+default p = 95
+
+copy x y x1 y1;
+omit x = '*'.
+copy x1 y1 x1 y1;
+omit y1 = '*'.
+
+corr x1 y1 m
+copy m a b
+let c = a(2)
+let nx = n(x1)
+
+let p1 = 1 - (1-p/100)/2
+invcdf p1 co;
+normal.
+
+let fr = loge((1+c)/(1-c))/2
+let f1 = fr - co/sqrt(nx-3)
+let f2 = fr + co/sqrt(nx-3)
+let lc(1) = (exp(2*f1)-1)/(exp(2*f1)+1)
+let uc(1) = (exp(2*f2)-1)/(exp(2*f2)+1)
+let pp(1) = p
+let cor(1) = c
+note
+print cor;
+format ('Sample Correlation Coefficient for this example is  =',f7.3).
+note
+note
+print pp;
+format (f5.1,'% Confidence Interval').
+note                  for this Population Correlation Coefficient
+note
+print lc,uc;
+format (40x,'is given by   (',f6.2,',',f6.2,')').
+
+
+ENDMACRO
+
